@@ -11,6 +11,9 @@ export default function AdminLayout() {
           <Link to="/admin/rooms" className="block">Rooms</Link>
           <Link to="/admin/students" className="block">Students</Link>
           <Link to="/admin/allocations" className="block">Allocations</Link>
+          <Link to="/admin/allocations/history" className="block">
+            Allocations History
+          </Link>
         </nav>
       </aside>
 

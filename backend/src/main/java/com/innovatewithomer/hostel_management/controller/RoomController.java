@@ -1,17 +1,19 @@
 package com.innovatewithomer.hostel_management.controller;
 
+import com.innovatewithomer.hostel_management.dto.BedStatusDto;
 import com.innovatewithomer.hostel_management.dto.RoomStatusResponse;
 import com.innovatewithomer.hostel_management.dto.RoomStudentResponse;
 import com.innovatewithomer.hostel_management.entities.Allocation;
 import com.innovatewithomer.hostel_management.entities.Room;
 import com.innovatewithomer.hostel_management.repositories.AllocationRepository;
 import com.innovatewithomer.hostel_management.repositories.RoomRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/rooms")
@@ -43,6 +45,34 @@ public class RoomController {
         return roomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
     }
+
+    @GetMapping("/{roomId}/beds")
+    public List<BedStatusDto> getRoomBeds(@PathVariable Long roomId) {
+        Room room = getRoomById(roomId);
+
+        List<Allocation> allocations =
+                allocationRepository.findByRoomIdAndActiveTrue(roomId);
+
+        Map<Integer, Allocation> occupiedMap = new HashMap<>();
+        for (Allocation a : allocations) {
+            occupiedMap.put(a.getBedNumber(), a);
+        }
+
+        List<BedStatusDto> beds = new ArrayList<>();
+
+        for (int i = 1; i <= room.getCapacity(); i++) {
+            Allocation allocation = occupiedMap.get(i);
+            beds.add(
+                    new BedStatusDto(
+                            i,
+                            allocation != null,
+                            allocation
+                    )
+            );
+        }
+        return beds;
+    }
+
 
     @GetMapping("/{roomId}/status")
     public RoomStatusResponse getRoomStatus(@PathVariable Long roomId) {

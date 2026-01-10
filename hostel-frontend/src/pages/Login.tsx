@@ -21,7 +21,7 @@ export default function Login() {
       if(role == "ADMIN") navigate("/admin")
         else if(role == "STUDENT") navigate("/student")
 
-      navigate("/dashboard"); // redirect after login
+      // navigate("/dashboard"); // redirect after login
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     }

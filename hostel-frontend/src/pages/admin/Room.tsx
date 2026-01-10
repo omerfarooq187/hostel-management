@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
+import { Link } from "react-router-dom";
 
 export default function RoomsPage() {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-
   const [block, setBlock] = useState("");
   const [roomNumber, setRoomNumber] = useState("");
   const [capacity, setCapacity] = useState("");
@@ -66,6 +66,7 @@ export default function RoomsPage() {
         setRooms(
           rooms.map((r) =>
             r.id === editingRoomId ? { ...res.data, status: status.data } : r
+          
           )
         );
       } else {
@@ -144,6 +145,13 @@ export default function RoomsPage() {
                 >
                   Delete
                 </button>
+
+                <Link
+                to={`/admin/rooms/${r.id}/beds`}
+                className="px-2 py-1 bg-blue-500 text-white rounded"
+                >
+                Beds
+                </Link>
               </td>
             </tr>
           ))}

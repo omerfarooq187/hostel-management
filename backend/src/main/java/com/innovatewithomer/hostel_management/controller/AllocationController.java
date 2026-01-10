@@ -29,6 +29,11 @@ public class AllocationController {
         return allocationRepository.count();
     }
 
+    @GetMapping("/history")
+    public List<Allocation> getAllocationHistory() {
+        return allocationRepository.findAll();
+    }
+
     @PostMapping("/student/{studentId}/room/{roomId}/bed/{bedNumber}")
     public Allocation allocateRoom(
             @PathVariable Long studentId,
@@ -83,6 +88,12 @@ public class AllocationController {
         return allocationRepository.findByStudentIdAndActiveTrue(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
     }
+
+    @GetMapping("/student/{studentId}/history")
+    public List<Allocation> getStudentAllocationHistory(@PathVariable Long studentId) {
+        return allocationRepository.findByStudentIdOrderByIdDesc(studentId);
+    }
+
 
     @PostMapping("/student/{studentId}/room/{roomId}")
     public Allocation autoAllocate(
