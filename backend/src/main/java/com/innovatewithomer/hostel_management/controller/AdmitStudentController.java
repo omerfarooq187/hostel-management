@@ -36,7 +36,7 @@ public class AdmitStudentController {
         Student student = new Student();
         student.setUser(user);
         student.setRollNo(request.getRollNo());
-        student.setPhone(request.getPhoneNumber());
+        student.setPhone(request.getPhone());
         student.setGuardianName(request.getGuardianName());
         student.setGuardianPhone(request.getGuardianPhoneNumber());
 
@@ -62,7 +62,7 @@ public class AdmitStudentController {
         Student student = getStudent(studentId);
 
         student.setRollNo(request.getRollNo());
-        student.setPhone(request.getPhoneNumber());
+        student.setPhone(request.getPhone());
         student.setGuardianName(request.getGuardianName());
         student.setGuardianPhone(request.getGuardianPhoneNumber());
 

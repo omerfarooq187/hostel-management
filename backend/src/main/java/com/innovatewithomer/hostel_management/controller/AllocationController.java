@@ -26,7 +26,7 @@ public class AllocationController {
 
     @GetMapping
     public Long getAllAllocations() {
-        return allocationRepository.count();
+        return allocationRepository.countByActiveTrue();
     }
 
     @GetMapping("/history")
@@ -74,6 +74,7 @@ public class AllocationController {
 
         allocation.setActive(false);
         allocationRepository.save(allocation);
+
 
         return "Room deallocated successfully";
     }

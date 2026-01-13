@@ -9,4 +9,6 @@ public class StudentProfileResponse {
     private Long studentId;
     private String name;
     private String email;
+    private String phone;
+    private StudentRequest studentRequest;
 }

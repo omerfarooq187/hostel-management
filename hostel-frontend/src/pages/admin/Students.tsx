@@ -1,11 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import api from "../../api/axios";
+import {
+  UserGroupIcon,
+  UserIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  AcademicCapIcon,
+  PencilIcon,
+  TrashIcon,
+  PlusIcon,
+  XMarkIcon,
+  ArrowPathIcon,
+  ExclamationCircleIcon,
+  CheckCircleIcon
+} from "@heroicons/react/24/outline";
 
 export default function StudentsPage() {
   const [students, setStudents] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
   // form state
   const [rollNo, setRollNo] = useState("");
@@ -19,7 +34,44 @@ export default function StudentsPage() {
 
   const [editingStudentId, setEditingStudentId] = useState(null);
 
+  // Error and success dialogs
+  const [errorDialog, setErrorDialog] = useState({
+    show: false,
+    title: "",
+    message: "",
+  });
+  const [successDialog, setSuccessDialog] = useState({
+    show: false,
+    title: "",
+    message: "",
+  });
+
+  const showError = (title, message) => {
+    setErrorDialog({
+      show: true,
+      title: title || "Error",
+      message: message || "An unexpected error occurred"
+    });
+  };
+
+  const showSuccess = (title, message) => {
+    setSuccessDialog({
+      show: true,
+      title: title || "Success",
+      message: message
+    });
+  };
+
+  const closeErrorDialog = () => {
+    setErrorDialog(prev => ({ ...prev, show: false }));
+  };
+
+  const closeSuccessDialog = () => {
+    setSuccessDialog(prev => ({ ...prev, show: false }));
+  };
+
   const fetchData = async () => {
+    setLoading(true);
     try {
       const [studentsRes, usersRes] = await Promise.all([
         api.get("/api/admin/students"),
@@ -28,8 +80,14 @@ export default function StudentsPage() {
 
       setStudents(studentsRes.data);
       setUsers(usersRes.data);
+
+      console.log(studentsRes.data)
     } catch (err) {
       console.error("Failed to load students", err);
+      showError(
+        "Failed to Load Data",
+        err.response?.data?.message || "Unable to load students and users. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -56,219 +114,600 @@ export default function StudentsPage() {
     setPhone(student.phone || "");
     setGuardianName(student.guardianName || "");
     setGuardianPhone(student.guardianPhone || "");
+    setSelectedUser(student.user);
+    setUserSearch(`${student.user.name} (${student.user.email})`);
     setShowModal(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!rollNo) {
+      showError("Validation Error", "Roll number is required");
+      return;
+    }
+    if (!editingStudentId && !selectedUser) {
+      showError("Validation Error", "Please select a user");
+      return;
+    }
+
+    setActionLoading(true);
     try {
+      let res;
       if (editingStudentId) {
-        const res = await api.put(`/api/admin/students/${editingStudentId}`, {
+        res = await api.put(`/api/admin/students/${editingStudentId}`, {
           rollNo,
-          phoneNumber: phone,
+          phone,
           guardianName,
           guardianPhoneNumber: guardianPhone,
         });
 
-        setStudents(
-          students.map((s) => (s.id === editingStudentId ? res.data : s))
+        setStudents(students.map((s) => (s.id === editingStudentId ? res.data : s)));
+        showSuccess(
+          "Student Updated",
+          "Student information has been successfully updated."
         );
       } else {
-        if (!selectedUser) {
-          alert("Please select a user");
-          return;
-        }
-
-        const res = await api.post(
-          `/api/admin/students/${selectedUser.id}`,
-          {
-            rollNo,
-            phoneNumber: phone,
-            guardianName,
-            guardianPhoneNumber: guardianPhone,
-          }
-        );
+        res = await api.post(`/api/admin/students/${selectedUser.id}`, {
+          rollNo,
+          phone,
+          guardianName,
+          guardianPhoneNumber: guardianPhone,
+        });
 
         setStudents([...students, res.data]);
+        showSuccess(
+          "Student Added",
+          "Student has been successfully added to the system."
+        );
       }
 
       setShowModal(false);
     } catch (err) {
       console.error("Failed to save student", err);
+      showError(
+        "Save Failed",
+        err.response?.data?.message || "Unable to save student. Please try again."
+      );
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this student?")) return;
+    if (!window.confirm("Are you sure you want to delete this student?")) return;
 
     try {
       await api.delete(`/api/admin/students/${id}`);
       setStudents(students.filter((s) => s.id !== id));
+      showSuccess(
+        "Student Deleted",
+        "Student has been successfully removed from the system."
+      );
     } catch (err) {
       console.error("Failed to delete student", err);
+      showError(
+        "Delete Failed",
+        err.response?.data?.message || "Unable to delete student. Please try again."
+      );
     }
   };
 
-  if (loading) return <p>Loading students...</p>;
+  if (loading) return <StudentsSkeleton />;
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Students</h1>
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Students Management</h1>
+          <p className="text-gray-600 mt-1">Manage all student profiles and information</p>
+        </div>
         <button
           onClick={openAddModal}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
         >
-          Add Student
+          <PlusIcon className="h-5 w-5" />
+          Add New Student
         </button>
       </div>
 
-      <table className="w-full bg-white rounded shadow">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="p-2 text-left">ID</th>
-            <th className="p-2 text-left">Name</th>
-            <th className="p-2 text-left">Email</th>
-            <th className="p-2 text-left">Roll No</th>
-            <th className="p-2 text-left">Phone</th>
-            <th className="p-2 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {students.map((s) => (
-            <tr key={s.id} className="border-b hover:bg-gray-100">
-              <td className="p-2">{s.id}</td>
-              <td className="p-2">{s.user.name}</td>
-              <td className="p-2">{s.user.email}</td>
-              <td className="p-2">{s.rollNo}</td>
-              <td className="p-2">{s.phone}</td>
-              <td className="p-2 space-x-2">
-                <button
-                  onClick={() => openEditModal(s)}
-                  className="px-2 py-1 bg-yellow-500 text-white rounded"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(s.id)}
-                  className="px-2 py-1 bg-red-500 text-white rounded"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-blue-800">Total Students</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{students.length}</p>
+            </div>
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <UserGroupIcon className="h-6 w-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-green-800">Registered Users</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{users.length}</p>
+            </div>
+            <div className="p-2 bg-green-100 rounded-lg">
+              <UserIcon className="h-6 w-6 text-green-600" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-purple-800">Available Users</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">
+                {users.filter(u => u.role !== "ADMIN" && !students.some(s => s.user.id === u.id)).length}
+              </p>
+            </div>
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <UserIcon className="h-6 w-6 text-purple-600" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-orange-800">Active Allocations</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">
+                {students.filter(s => s.currentAllocation).length}
+              </p>
+            </div>
+            <div className="p-2 bg-orange-100 rounded-lg">
+              <AcademicCapIcon className="h-6 w-6 text-orange-600" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Students Table */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+              <tr>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">Student Details</th>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">Contact</th>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">Guardian</th>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">Status</th>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {students.map((student) => (
+                <tr key={student.id} className="hover:bg-gray-50 transition-colors duration-200">
+                  <td className="py-4 px-6">
+                    <div>
+                      <div className="font-medium text-gray-900">{student.user.name}</div>
+                      <div className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                        <EnvelopeIcon className="h-3 w-3" />
+                        {student.user.email}
+                      </div>
+                      <div className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                        <AcademicCapIcon className="h-3 w-3" />
+                        Roll No: {student.rollNo}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-1 text-gray-700">
+                      <PhoneIcon className="h-4 w-4" />
+                      {student.phone || "Not provided"}
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{student.guardianName || "N/A"}</div>
+                      {student.guardianPhone && (
+                        <div className="text-sm text-gray-600">{student.guardianPhone}</div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                      student.currentAllocation 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {student.user.active ? "Allocated" : "Not Allocated"}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => openEditModal(student)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-medium transition-colors duration-200"
+                      >
+                        <PencilIcon className="h-4 w-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(student.id)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg font-medium transition-colors duration-200"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Refresh Button */}
+      <div className="flex justify-center">
+        <button
+          onClick={fetchData}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors duration-200"
+        >
+          <ArrowPathIcon className="h-4 w-4" />
+          Refresh Students
+        </button>
+      </div>
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">
-              {editingStudentId ? "Edit Student" : "Add Student"}
-            </h2>
+        <Modal
+          editingStudentId={editingStudentId}
+          userSearch={userSearch}
+          setUserSearch={setUserSearch}
+          users={users}
+          selectedUser={selectedUser}
+          setSelectedUser={setSelectedUser}
+          rollNo={rollNo}
+          setRollNo={setRollNo}
+          phone={phone}
+          setPhone={setPhone}
+          guardianName={guardianName}
+          setGuardianName={setGuardianName}
+          guardianPhone={guardianPhone}
+          setGuardianPhone={setGuardianPhone}
+          onClose={() => setShowModal(false)}
+          onSubmit={handleSubmit}
+          actionLoading={actionLoading}
+          students={students}
+        />
+      )}
 
-            <form onSubmit={handleSubmit} className="space-y-3">
-              {!editingStudentId && (
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search user by name or email"
-                    value={userSearch}
-                    onChange={(e) => {
-                      setUserSearch(e.target.value);
-                      setSelectedUser(null);
-                    }}
-                    className="w-full p-2 border rounded"
-                  />
+      {/* Error Dialog */}
+      {errorDialog.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-500/20 rounded-lg">
+                  <ExclamationCircleIcon className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-white">{errorDialog.title}</h2>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-6">
+                <p className="text-gray-700">{errorDialog.message}</p>
+              </div>
+              
+              <div className="flex justify-end">
+                <button
+                  onClick={closeErrorDialog}
+                  className="px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg font-medium transition-all duration-300 hover:shadow-lg"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-                  {userSearch && !selectedUser && (
-                    <div className="absolute w-full bg-white border rounded shadow max-h-40 overflow-y-auto z-10">
-                      {users
-                        .filter(
-                          (u) =>
-                            u.role !== "ADMIN" &&
-                            !students.some((s) => s.user.id === u.id) &&
-                            (u.name
-                              .toLowerCase()
-                              .includes(userSearch.toLowerCase()) ||
-                              u.email
-                                .toLowerCase()
-                                .includes(userSearch.toLowerCase()))
-                        )
-                        .slice(0, 10)
-                        .map((u) => (
-                          <div
-                            key={u.id}
-                            onClick={() => {
-                              setSelectedUser(u);
-                              setUserSearch(`${u.name} (${u.email})`);
-                            }}
-                            className="p-2 cursor-pointer hover:bg-gray-100"
-                          >
-                            <p className="font-medium">{u.name}</p>
+      {/* Success Dialog */}
+      {successDialog.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-500/20 rounded-lg">
+                  <CheckCircleIcon className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-white">{successDialog.title}</h2>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-6">
+                <p className="text-gray-700">{successDialog.message}</p>
+              </div>
+              
+              <div className="flex justify-end">
+                <button
+                  onClick={closeSuccessDialog}
+                  className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg font-medium transition-all duration-300 hover:shadow-lg"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Modal component
+const Modal = memo(({
+  editingStudentId,
+  userSearch,
+  setUserSearch,
+  users,
+  selectedUser,
+  setSelectedUser,
+  rollNo,
+  setRollNo,
+  phone,
+  setPhone,
+  guardianName,
+  setGuardianName,
+  guardianPhone,
+  setGuardianPhone,
+  onClose,
+  onSubmit,
+  actionLoading,
+  students
+}) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-white">
+            {editingStudentId ? "Edit Student" : "Add New Student"}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-white hover:text-gray-200 transition-colors"
+            disabled={actionLoading}
+          >
+            <XMarkIcon className="h-6 w-6" />
+          </button>
+        </div>
+      </div>
+      
+      <form onSubmit={onSubmit} className="p-6 space-y-4">
+        {!editingStudentId && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Search User
+              <span className="text-gray-500 text-sm ml-1">(Name or Email)</span>
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Start typing to search users..."
+                value={userSearch}
+                onChange={(e) => {
+                  setUserSearch(e.target.value);
+                  setSelectedUser(null);
+                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                disabled={actionLoading}
+              />
+              {userSearch && !selectedUser && (
+                <div className="absolute w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto z-10">
+                  {users
+                    .filter(
+                      (u) =>
+                        u.role !== "ADMIN" &&
+                        !students.some((s) => s.user.id === u.id) &&
+                        (u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
+                          u.email.toLowerCase().includes(userSearch.toLowerCase()))
+                    )
+                    .slice(0, 8)
+                    .map((u) => (
+                      <div
+                        key={u.id}
+                        onClick={() => {
+                          setSelectedUser(u);
+                          setUserSearch(`${u.name} (${u.email})`);
+                        }}
+                        className="p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <UserIcon className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{u.name}</p>
                             <p className="text-sm text-gray-500">{u.email}</p>
                           </div>
-                        ))}
+                        </div>
+                      </div>
+                    ))}
+                  {users.filter(
+                    (u) =>
+                      u.role !== "ADMIN" &&
+                      !students.some((s) => s.user.id === u.id) &&
+                      (u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
+                        u.email.toLowerCase().includes(userSearch.toLowerCase()))
+                  ).length === 0 && (
+                    <div className="p-4 text-center text-gray-500">
+                      No available users found
                     </div>
                   )}
                 </div>
               )}
-
-              <input
-                type="text"
-                placeholder="Roll Number"
-                value={rollNo}
-                onChange={(e) => setRollNo(e.target.value)}
-                className="w-full p-2 border rounded"
-                required
-              />
-
-              <input
-                type="text"
-                placeholder="Phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full p-2 border rounded"
-              />
-
-              <input
-                type="text"
-                placeholder="Guardian Name"
-                value={guardianName}
-                onChange={(e) => setGuardianName(e.target.value)}
-                className="w-full p-2 border rounded"
-              />
-
-              <input
-                type="text"
-                placeholder="Guardian Phone"
-                value={guardianPhone}
-                onChange={(e) => setGuardianPhone(e.target.value)}
-                className="w-full p-2 border rounded"
-              />
-
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded"
-                >
-                  Save
-                </button>
+            </div>
+            {selectedUser && (
+              <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-green-800">Selected User</p>
+                    <p className="text-sm text-green-700">{selectedUser.name} ({selectedUser.email})</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedUser(null);
+                      setUserSearch("");
+                    }}
+                    className="text-green-700 hover:text-green-900"
+                  >
+                    <XMarkIcon className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
-            </form>
+            )}
+          </div>
+        )}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Roll Number *
+          </label>
+          <input
+            type="text"
+            placeholder="Enter roll number"
+            value={rollNo}
+            onChange={(e) => setRollNo(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            required
+            disabled={actionLoading}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Phone Number
+          </label>
+          <input
+            type="text"
+            placeholder="Enter phone number"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            disabled={actionLoading}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Guardian Name
+            </label>
+            <input
+              type="text"
+              placeholder="Guardian name"
+              value={guardianName}
+              onChange={(e) => setGuardianName(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              disabled={actionLoading}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Guardian Phone
+            </label>
+            <input
+              type="text"
+              placeholder="Guardian phone"
+              value={guardianPhone}
+              onChange={(e) => setGuardianPhone(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              disabled={actionLoading}
+            />
           </div>
         </div>
-      )}
+
+        <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-5 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors"
+            disabled={actionLoading}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-medium transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={actionLoading}
+          >
+            {actionLoading ? (
+              <span className="flex items-center gap-2">
+                <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                Saving...
+              </span>
+            ) : editingStudentId ? "Update Student" : "Add Student"}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+));
+
+function StudentsSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      {/* Header Skeleton */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-2">
+          <div className="h-10 w-64 bg-gray-200 rounded-lg"></div>
+          <div className="h-4 w-48 bg-gray-200 rounded"></div>
+        </div>
+        <div className="h-12 w-40 bg-gray-200 rounded-xl"></div>
+      </div>
+
+      {/* Stats Skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="bg-gray-100 border border-gray-200 rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <div className="h-4 w-24 bg-gray-300 rounded"></div>
+                <div className="h-8 w-16 bg-gray-300 rounded"></div>
+              </div>
+              <div className="h-10 w-10 bg-gray-300 rounded-lg"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Table Skeleton */}
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+        <div className="p-4 border-b border-gray-200">
+          <div className="h-4 w-32 bg-gray-200 rounded"></div>
+        </div>
+        <div className="p-4 space-y-4">
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-4 w-full">
+                <div className="space-y-2 flex-1">
+                  <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                  <div className="h-3 w-48 bg-gray-200 rounded"></div>
+                </div>
+                <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
+                <div className="h-8 w-32 bg-gray-200 rounded-lg"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Refresh Button Skeleton */}
+      <div className="flex justify-center">
+        <div className="h-10 w-32 bg-gray-200 rounded-xl"></div>
+      </div>
     </div>
   );
 }

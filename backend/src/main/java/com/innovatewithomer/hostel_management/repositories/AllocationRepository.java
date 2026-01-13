@@ -11,6 +11,7 @@ public interface AllocationRepository extends JpaRepository<Allocation, Long> {
     Optional<Allocation> findByRoomIdAndBedNumberAndActiveTrue(Long roomId, int bedNumber);
     List<Allocation> findByRoomIdAndActiveTrue(Long roomId);
     long countByRoomIdAndActiveTrue(Long roomId);
+    long countByActiveTrue();
     List<Allocation> findByRoomIdAndActiveTrueOrderByBedNumber(Long roomId);
     List<Allocation> findByStudentIdOrderByIdDesc(Long studentId);
 
