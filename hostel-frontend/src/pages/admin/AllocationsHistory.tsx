@@ -40,8 +40,11 @@ export default function AllocationHistory() {
 
   const loadHistory = async () => {
     setLoading(true);
+    const hostelId = localStorage.getItem("selectedHostelId")
     try {
-      const res = await api.get("/api/admin/allocations/history");
+      const res = await api.get("/api/admin/allocations/history", {
+        params: {hostelId}
+      });
       setHistory(res.data);
     } catch (err) {
       console.error("Failed to load allocation history", err);

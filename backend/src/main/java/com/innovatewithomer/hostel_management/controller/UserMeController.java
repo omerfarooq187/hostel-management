@@ -1,10 +1,12 @@
 package com.innovatewithomer.hostel_management.controller;
 
 import com.innovatewithomer.hostel_management.config.AuthUtil;
+import com.innovatewithomer.hostel_management.config.UserPrincipal;
 import com.innovatewithomer.hostel_management.dto.UserRequest;
 import com.innovatewithomer.hostel_management.entities.User;
 import com.innovatewithomer.hostel_management.repositories.AllocationRepository;
 import com.innovatewithomer.hostel_management.repositories.UserRepository;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;

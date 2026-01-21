@@ -1,5 +1,6 @@
 package com.innovatewithomer.hostel_management.controller;
 
+import com.innovatewithomer.hostel_management.config.UserPrincipal;
 import com.innovatewithomer.hostel_management.dto.LoginRequest;
 import com.innovatewithomer.hostel_management.dto.LoginResponse;
 import com.innovatewithomer.hostel_management.dto.SignupRequest;
@@ -8,8 +9,10 @@ import com.innovatewithomer.hostel_management.entities.Role;
 import com.innovatewithomer.hostel_management.entities.User;
 import com.innovatewithomer.hostel_management.repositories.UserRepository;
 import com.innovatewithomer.hostel_management.security.JwtUtil;
+import jakarta.persistence.EntityManager;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,7 +30,7 @@ public class AuthController {
     public AuthController(
             AuthenticationManager authenticationManager,
             JwtUtil jwtUtil,
-            UserRepository userRepository, PasswordEncoder passwordEncoder
+            UserRepository userRepository, PasswordEncoder passwordEncoder, EntityManager entityManager
     ) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;

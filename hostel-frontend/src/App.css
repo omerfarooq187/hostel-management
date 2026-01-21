@@ -1,3 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Spacing for full-width sections */
+  --section-padding: 2.5rem 1rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #4C4C4C;
+  background-color: #FFFFFF;
+  line-height: 1.6;
+}
+
+/* Container utility */
+.container {
+  max-width: 1260px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Button Styles matching Officers Hostel */
+.btn-primary {
+  background-color: #0F0106;
+  color: #FFFFFE;
+  border-radius: 0.375em;
+  padding: calc(0.667em + 2px) calc(1.333em + 2px);
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #B58E67;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: #B58E67;
+  border: 2px solid #B58E67;
+  padding: calc(0.667em + 2px) calc(1.333em + 2px);
+  border-radius: 0.375em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #B58E67;
+  color: #FFFFFE;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  color: #0F0106;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+h1 {
+  font-size: clamp(20px, 1.25rem + ((1vw - 3.2px) * 0.732), 32px);
+}
+
+h2 {
+  font-size: clamp(17.905px, 1.119rem + ((1vw - 3.2px) * 0.616), 28px);
+}
+
+h3 {
+  font-size: clamp(15.747px, 0.984rem + ((1vw - 3.2px) * 0.503), 24px);
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

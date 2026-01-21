@@ -19,10 +19,14 @@ public class KitchenInventory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long Id;
 
     private String itemName;
     private double quantity;
     private String unit;
+
+    @ManyToOne
+    @JoinColumn(name = "hostel_id", nullable = false)
+    private Hostel hostel;
     private LocalDateTime lastUpdated = LocalDateTime.now();
 }

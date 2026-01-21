@@ -38,4 +38,8 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
     private Student student;
+
+    @ManyToOne
+    @JoinColumn(name = "hostel_id", nullable = true)
+    private Hostel hostel;
 }

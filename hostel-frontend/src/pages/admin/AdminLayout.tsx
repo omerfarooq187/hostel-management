@@ -11,19 +11,68 @@ import {
   UserCircleIcon,
   Bars3Icon,
   XMarkIcon,
-  ChevronRightIcon
+  CurrencyDollarIcon,
+  CurrencyRupeeIcon
 } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedHostel, setSelectedHostel] = useState(null);
+
+  // KitchenInventoryIcon.jsx
+const KitchenInventoryIcon = ({ size = 24, color = 'currentColor', className = '' }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    {/* Cabinet outline */}
+    <rect x="3" y="3" width="18" height="18" rx="1" />
+    
+    {/* Shelves */}
+    <line x1="3" y1="9" x2="21" y2="9" />
+    <line x1="3" y1="15" x2="21" y2="15" />
+    
+    {/* Door lines */}
+    <line x1="12" y1="3" x2="12" y2="21" />
+    
+    {/* Door handles */}
+    <circle cx="9" cy="6" r="0.5" fill={color} />
+    <circle cx="15" cy="6" r="0.5" fill={color} />
+    
+    {/* Small items on shelves */}
+    <circle cx="6" cy="12" r="1" />
+    <circle cx="18" cy="12" r="1" />
+    <rect x="5" y="17" width="2" height="1" rx="0.5" />
+    <rect x="17" y="17" width="2" height="1" rx="0.5" />
+  </svg>
+);
   
+  useEffect(() => {
+    // Get selected hostel from localStorage
+    const storedHostel = localStorage.getItem('selectedHostel');
+    if (storedHostel && storedHostel !== 'null') {
+      try {
+        setSelectedHostel(JSON.parse(storedHostel));
+      } catch (error) {
+        console.error('Error parsing hostel data:', error);
+      }
+    }
+  }, []);
+
   const navigationItems = [
     { 
       name: 'Dashboard', 
-      to: '/admin', 
+      to: '/admin/dashboard', 
       icon: HomeIcon 
     },
     { 
@@ -46,6 +95,16 @@ export default function AdminLayout() {
       to: '/admin/allocations/history', 
       icon: ClockIcon 
     },
+    {
+      name: 'Fees',
+      to: '/admin/fees',
+      icon: CurrencyRupeeIcon
+    },
+    {
+      name: 'Inventory',
+      to: '/admin/inventory',
+      icon: KitchenInventoryIcon
+    }
   ];
 
   // Get current page title for breadcrumb
@@ -58,8 +117,15 @@ export default function AdminLayout() {
   };
 
   const handleLogout = () => {
-    // Add your logout logic here
-    console.log("Logging out...");
+    // Clear authentication
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('userRole');
+    
+    // Clear hostel selection
+    localStorage.removeItem('selectedHostel');
+    localStorage.removeItem('selectedHostelId');
+    
+    // Redirect to login
     navigate('/login');
   };
 
@@ -97,6 +163,18 @@ export default function AdminLayout() {
               <p className="text-gray-400 text-sm">Management System</p>
             </div>
           </div>
+          
+          {/* Show selected hostel if available */}
+          {selectedHostel && (
+            <div className="mt-4 p-2 bg-gray-800 rounded-lg">
+              <p className="text-sm text-white font-medium truncate">
+                {selectedHostel.name}
+              </p>
+              <p className="text-xs text-gray-400 truncate">
+                {selectedHostel.address}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Navigation */}
@@ -105,7 +183,7 @@ export default function AdminLayout() {
             <NavLink
               key={item.name}
               to={item.to}
-              end={item.to === '/admin'}
+              end={item.to === '/admin/dashboard'}
               className={({ isActive }) => `
                 flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200
                 ${isActive 
@@ -132,7 +210,22 @@ export default function AdminLayout() {
           </div>
           
           <div className="space-y-2">
-            <button className="flex items-center space-x-3 w-full px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
+            <button 
+              onClick={() => {
+                // Navigate to change hostel (to be implemented in settings)
+                localStorage.removeItem('selectedHostel');
+                localStorage.removeItem('selectedHostelId');
+                navigate('/admin/hostel-selection');
+              }}
+              className="flex items-center space-x-3 w-full px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition-colors"
+            >
+              <BuildingOfficeIcon className="h-5 w-5" />
+              <span>Change Hostel</span>
+            </button>
+            
+            <button 
+            onClick={()=> navigate("/admin/settings")}
+            className="flex items-center space-x-3 w-full px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
               <Cog6ToothIcon className="h-5 w-5" />
               <span>Settings</span>
             </button>
@@ -151,7 +244,22 @@ export default function AdminLayout() {
       {/* Main Content */}
       <div className="lg:ml-64 min-h-screen">
         {/* Top Bar */}
-        
+        <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {getPageTitle()}
+              </h1>
+              {selectedHostel && (
+                <p className="text-sm text-gray-600">
+                  Managing: <span className="font-medium">{selectedHostel.name}</span>
+                </p>
+              )}
+            </div>
+            
+            {/* Add refresh or other top bar actions if needed */}
+          </div>
+        </div>
 
         {/* Main Content Area */}
         <main className="p-6">

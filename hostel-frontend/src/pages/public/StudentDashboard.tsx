@@ -9,13 +9,17 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const hostelId = localStorage.getItem("selectedHostelId")
       try {
         const studentRes = await api.get("/api/student/me"); // backend should return current user info
         setStudent(studentRes.data);
 
         if (studentRes.data.studentId) {
           const allocationRes = await api.get(
-            `/api/admin/allocations/student/${studentRes.data.studentId}`
+            `/api/admin/allocations/student/${studentRes.data.studentId}`,
+            {
+              params: {hostelId}
+            }
           );
           setAllocation(allocationRes.data);
         }

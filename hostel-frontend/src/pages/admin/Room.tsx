@@ -34,13 +34,18 @@ export default function RoomsPage() {
   const fetchRooms = async () => {
     setLoading(true);
     setError(null);
+    const hostelId = localStorage.getItem("selectedHostelId");
     try {
-      const res = await api.get("/api/admin/rooms");
+      const res = await api.get("/api/admin/rooms", {
+        params: {hostelId}
+      });
 
       // Fetch status for each room
       const roomsWithStatus = await Promise.all(
         res.data.map(async (room) => {
-          const status = await api.get(`/api/admin/rooms/${room.id}/status`);
+          const status = await api.get(`/api/admin/rooms/${room.id}/status`,
+            {params: {hostelId}}
+          );
           return { ...room, status: status.data };
         })
       );
@@ -100,6 +105,7 @@ export default function RoomsPage() {
     if (!block || !roomNumber || !capacity) return;
 
     setActionLoading(true);
+    const hostelId = localStorage.getItem("selectedHostelId");
     try {
       let res;
       if (editingRoomId) {
@@ -121,9 +127,11 @@ export default function RoomsPage() {
           block,
           roomNumber,
           capacity: Number(capacity),
+        },{
+          params: {hostelId}
         });
 
-        const status = await api.get(`/api/admin/rooms/${res.data.id}/status`);
+        const status = await api.get(`/api/admin/rooms/${res.data.id}/status`, {params: {hostelId}});
         setRooms([...rooms, { ...res.data, status: status.data }]);
       }
 

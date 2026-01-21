@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class KitchenInventoryDto {
+    private Long id;
     private String itemName;
     private double quantity;
     private String unit;

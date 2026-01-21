@@ -1,5 +1,6 @@
 package com.innovatewithomer.hostel_management.services;
 
+import com.innovatewithomer.hostel_management.config.UserPrincipal;
 import com.innovatewithomer.hostel_management.entities.User;
 import com.innovatewithomer.hostel_management.repositories.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,11 +21,17 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(()-> new UsernameNotFoundException("User not found"));
 
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
-                .password(user.getPassword())
-                .roles(user.getRole().name())
-                .disabled(!user.isActive())
-                .build();
+        Long hostelId = user.getHostel() != null
+                ? user.getHostel().getId()
+                : null;
+
+        return new UserPrincipal(
+                user.getId(),
+                hostelId,
+                user.getEmail(),
+                user.getPassword(),
+                user.getRole(),
+                user.isActive()
+        );
     }
 }

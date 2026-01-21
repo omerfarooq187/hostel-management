@@ -21,4 +21,8 @@ public class Room {
     private String block;
     private String roomNumber;
     private int capacity;
+
+    @ManyToOne
+    @JoinColumn(name = "hostel_id", nullable = false)
+    private Hostel hostel;
 }

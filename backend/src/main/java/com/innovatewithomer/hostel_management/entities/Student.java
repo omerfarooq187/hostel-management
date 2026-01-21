@@ -27,8 +27,14 @@ public class Student {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "hostel_id", nullable = false)
+    private Hostel hostel;
+
     private String rollNo;
     private String phone;
     private String guardianName;
     private String guardianPhone;
+
+
 }

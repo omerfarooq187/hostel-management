@@ -35,7 +35,7 @@ export default function Login() {
 
       // redirect by role
       if (res.data.role === "ADMIN") {
-        navigate("/admin");
+        navigate("/admin/login");
       } else {
         navigate("/profile");
       }

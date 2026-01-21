@@ -46,10 +46,10 @@ export default function Home() {
 
             {token && (
               <Link
-                to="/dashboard"
+                to="/profile"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition-colors"
               >
-                Go to Dashboard
+                Go to Profile
                 <ArrowRightIcon className="h-5 w-5" />
               </Link>
             )}

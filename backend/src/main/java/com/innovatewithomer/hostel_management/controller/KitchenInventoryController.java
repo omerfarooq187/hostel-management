@@ -1,34 +1,45 @@
 package com.innovatewithomer.hostel_management.controller;
 
+import com.innovatewithomer.hostel_management.config.UserPrincipal;
 import com.innovatewithomer.hostel_management.dto.KitchenInventoryDto;
 import com.innovatewithomer.hostel_management.dto.KitchenInventoryRequest;
+import com.innovatewithomer.hostel_management.entities.Hostel;
 import com.innovatewithomer.hostel_management.entities.KitchenInventory;
 import com.innovatewithomer.hostel_management.repositories.KitchenInventoryRepository;
+import jakarta.persistence.EntityManager;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin/inventory")
 public class KitchenInventoryController {
     private final KitchenInventoryRepository kitchenInventoryRepository;
+    private final EntityManager entityManager;
 
-    public KitchenInventoryController(KitchenInventoryRepository kitchenInventoryRepository) {
+    public KitchenInventoryController(KitchenInventoryRepository kitchenInventoryRepository, EntityManager entityManager) {
         this.kitchenInventoryRepository = kitchenInventoryRepository;
+        this.entityManager = entityManager;
     }
 
     @PostMapping
-    public ResponseEntity<KitchenInventoryDto> addInventory(@RequestBody KitchenInventoryRequest request) {
-        if (kitchenInventoryRepository.existsByItemNameIgnoreCase(request.getItemName())) {
+    public ResponseEntity<KitchenInventoryDto> addInventory(@RequestBody KitchenInventoryRequest request, @RequestParam Long hostelId) {
+        if (kitchenInventoryRepository.existsByItemNameIgnoreCaseAndHostelId(request.getItemName(), hostelId)) {
             throw new RuntimeException("Item with name " + request.getItemName() + " already exists");
         }
+
+        Hostel hostel = entityManager.getReference(
+                Hostel.class,
+                hostelId
+        );
 
         KitchenInventory kitchenInventory = new KitchenInventory();
         kitchenInventory.setItemName(request.getItemName());
         kitchenInventory.setQuantity(request.getQuantity());
         kitchenInventory.setUnit(request.getUnit());
+        kitchenInventory.setHostel(hostel);
         kitchenInventoryRepository.save(kitchenInventory);
 
         return ResponseEntity.ok(convertToDto(kitchenInventory));
@@ -42,9 +53,9 @@ public class KitchenInventoryController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<KitchenInventoryDto>> getInventoryByItemName(@RequestParam String itemName) {
+    public ResponseEntity<List<KitchenInventoryDto>> getInventoryByItemName(@RequestParam String itemName, @RequestParam Long hostelId) {
         List<KitchenInventoryDto> items = kitchenInventoryRepository
-                .findByItemNameContainingIgnoreCase(itemName)
+                .findByItemNameContainingIgnoreCaseAndHostelId(itemName, hostelId)
                 .stream()
                 .map(this::convertToDto)
                 .toList();
@@ -53,12 +64,12 @@ public class KitchenInventoryController {
     }
 
     @PutMapping("/{itemId}")
-    public ResponseEntity<KitchenInventoryDto> updateItem(@PathVariable Long itemId, @RequestBody KitchenInventoryRequest request) {
+    public ResponseEntity<KitchenInventoryDto> updateItem(@PathVariable Long itemId, @RequestBody KitchenInventoryRequest request, @RequestParam Long hostelId) {
         KitchenInventory item = kitchenInventoryRepository.findById(itemId)
                 .orElseThrow(()-> new RuntimeException("Item not found"));
 
         if (!item.getItemName().equalsIgnoreCase(request.getItemName()) &&
-                kitchenInventoryRepository.existsByItemNameIgnoreCase(item.getItemName())) {
+                kitchenInventoryRepository.existsByItemNameIgnoreCaseAndHostelId(item.getItemName(), hostelId)) {
             throw new RuntimeException("Item with name " + item.getItemName() + " already exists");
         }
 
@@ -100,6 +111,7 @@ public class KitchenInventoryController {
 
     private KitchenInventoryDto convertToDto(KitchenInventory item) {
         return  new KitchenInventoryDto(
+                item.getId(),
                 item.getItemName(),
                 item.getQuantity(),
                 item.getUnit(),

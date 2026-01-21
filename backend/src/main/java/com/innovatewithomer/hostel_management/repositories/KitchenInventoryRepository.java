@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface KitchenInventoryRepository extends JpaRepository<KitchenInventory, Long> {
-    Optional<KitchenInventory> findByItemNameIgnoreCase(String itemName);
-    List<KitchenInventory> findByItemNameContainingIgnoreCase(String itemName);
-    boolean existsByItemNameIgnoreCase(String itemName);
+    Optional<KitchenInventory> findByItemNameIgnoreCaseAndHostelId(String itemName,  Long hostelId);
+    List<KitchenInventory> findByItemNameContainingIgnoreCaseAndHostelId(String itemName,  Long hostelId);
+    boolean existsByItemNameIgnoreCaseAndHostelId(String itemName, Long hostelId);
 }

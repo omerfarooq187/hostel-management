@@ -25,6 +25,8 @@ export default function Allocations() {
   // History modal
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState([]);
+
+  const hostelId = localStorage.getItem("selectedHostelId")
   
   // Error dialog state
   const [errorDialog, setErrorDialog] = useState({
@@ -72,8 +74,12 @@ export default function Allocations() {
     setLoading(true);
     try {
       const [roomsRes, studentsRes] = await Promise.all([
-        api.get("/api/admin/rooms"),
-        api.get("/api/admin/students"),
+        api.get("/api/admin/rooms", {
+          params: {hostelId}
+        }),
+        api.get("/api/admin/students", {
+          params: {hostelId}
+        }),
       ]);
       setRooms(roomsRes.data);
       setStudents(studentsRes.data);
@@ -114,7 +120,11 @@ export default function Allocations() {
     setActionLoading(true);
     try {
       await api.post(
-        `/api/admin/allocations/student/${selectedStudent}/room/${selectedRoom}`
+        `/api/admin/allocations/student/${selectedStudent}/room/${selectedRoom}`,
+        {},
+        {
+          params: {hostelId}
+        }
       );
       loadRoomAllocations(selectedRoom);
       setSelectedStudent("");
@@ -155,7 +165,8 @@ export default function Allocations() {
   const openHistory = async (studentId) => {
     try {
       const res = await api.get(
-        `/api/admin/allocations/student/${studentId}/history`
+        `/api/admin/allocations/student/${studentId}/history`,
+        {params: {hostelId}}
       );
       setHistory(res.data);
       setShowHistory(true);

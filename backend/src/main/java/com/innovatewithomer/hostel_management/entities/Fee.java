@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 
 @Entity
 @Table(name = "fees")
@@ -22,6 +23,11 @@ public class Fee {
     @ManyToOne
     private Student student;
 
+    @ManyToOne
+    @JoinColumn(comment = "hostel_id", nullable = false)
+    private Hostel hostel;
+
+    @Column(nullable = false)
     private String month;
     private double amount;
     private LocalDate dueDate;

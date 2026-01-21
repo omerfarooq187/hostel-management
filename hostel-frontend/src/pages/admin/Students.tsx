@@ -12,7 +12,8 @@ import {
   XMarkIcon,
   ArrowPathIcon,
   ExclamationCircleIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  CurrencyRupeeIcon
 } from "@heroicons/react/24/outline";
 
 export default function StudentsPage() {
@@ -33,6 +34,10 @@ export default function StudentsPage() {
   const [selectedUser, setSelectedUser] = useState(null);
 
   const [editingStudentId, setEditingStudentId] = useState(null);
+
+  // Student total collection
+  const [totalCollections, setTotalCollections] = useState({});
+
 
   // Error and success dialogs
   const [errorDialog, setErrorDialog] = useState({
@@ -72,10 +77,13 @@ export default function StudentsPage() {
 
   const fetchData = async () => {
     setLoading(true);
+    const hostelId = localStorage.getItem("selectedHostelId")
     try {
       const [studentsRes, usersRes] = await Promise.all([
-        api.get("/api/admin/students"),
-        api.get("/api/admin/users"),
+        api.get("/api/admin/students",
+          {params: {hostelId}}
+        ),
+        api.get("/api/admin/users")
       ]);
 
       setStudents(studentsRes.data);
@@ -93,9 +101,32 @@ export default function StudentsPage() {
     }
   };
 
+  const fetchTotalCollection = async (studentId) => {
+  try {
+    const res = await api.get("/api/admin/fee/student/collection", {
+      params: { studentId }
+    });
+
+    setTotalCollections(prev => ({
+      ...prev,
+      [studentId]: res.data
+    }));
+  } catch (err) {
+    console.error("Failed to fetch total collection for student", studentId, err);
+  }
+};
+
+
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+  if (students?.length) {
+    students.forEach(student => fetchTotalCollection(student.id));
+  }
+}, [students]);
+
 
   const openAddModal = () => {
     setEditingStudentId(null);
@@ -132,6 +163,7 @@ export default function StudentsPage() {
     }
 
     setActionLoading(true);
+    const hostelId = localStorage.getItem("selectedHostelId")
     try {
       let res;
       if (editingStudentId) {
@@ -153,7 +185,10 @@ export default function StudentsPage() {
           phone,
           guardianName,
           guardianPhoneNumber: guardianPhone,
-        });
+        },
+      {
+        params: {hostelId}
+      });
 
         setStudents([...students, res.data]);
         showSuccess(
@@ -278,6 +313,7 @@ export default function StudentsPage() {
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Guardian</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Status</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Actions</th>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">Total Collection</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -335,6 +371,14 @@ export default function StudentsPage() {
                         <TrashIcon className="h-4 w-4" />
                         Delete
                       </button>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-1 text-gray-700">
+                      <CurrencyRupeeIcon className="h-4 w-4" />
+                      {totalCollections[student.id] !== undefined 
+                      ? totalCollections[student.id] 
+                      : "Loading..."}
                     </div>
                   </td>
                 </tr>

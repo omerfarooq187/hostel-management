@@ -11,45 +11,47 @@ import Profile from "./pages/public/Profile";
 import About from "./pages/public/About";
 
 // Admin pages
-import AdminLayout from "./pages/admin/AdminLayout";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import RoomsPage from "./pages/admin/Room";
-import StudentsPage from "./pages/admin/Students";
-import Allocations from "./pages/admin/Allocations";
-import AllocationHistory from "./pages/admin/AllocationsHistory";
-import RoomBeds from "./pages/admin/RoomBeds";
+import AdminRouteWrapper from "./components/AdminRouteWrapper";
+import HostelSelection from "./pages/admin/HostelSelection";
 import RoleRoute from "./components/RoleRoute";
-
-
+import AdminLogin from "./pages/admin/AdminLogin";
 
 export default function App() {
-
-  const user = null;
   return (
     <Routes>
       {/* Public routes */}
       <Route element={<PublicLayout />}>
-        <Route path="/" element={<Home user={user} />} />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/about" element={<About />} />
         <Route path="/dashboard" element={<StudentDashboard />} />
       </Route>
 
-      {/* Admin routes */}
-      <Route path="/admin" element={
-        <RoleRoute allowedRoles={["ADMIN"]}>
-          <AdminLayout/>
-        </RoleRoute>
-      }>
-        <Route index element={<AdminDashboard />} />
-        <Route path="rooms" element={<RoomsPage />} />
-        <Route path="students" element={<StudentsPage />} />
-        <Route path="allocations" element={<Allocations />} />
-        <Route path="allocations/history" element={<AllocationHistory />} />
-        <Route path="rooms/:roomId/beds" element={<RoomBeds />} />
-      </Route>
+      {/* Hostel selection route */}
+      <Route 
+        path="/admin/hostel-selection" 
+        element={
+          <RoleRoute allowedRoles={["ADMIN"]}>
+            <HostelSelection />
+          </RoleRoute>
+        }
+      />
+
+      <Route path="/admin/login" element={<AdminLogin />} />
+
+      {/* All other admin routes */}
+      <Route 
+        path="/admin/*" 
+        element={
+          <RoleRoute allowedRoles={["ADMIN"]}>
+            <AdminRouteWrapper />
+          </RoleRoute>
+        }
+      />
+
     </Routes>
   );
 }

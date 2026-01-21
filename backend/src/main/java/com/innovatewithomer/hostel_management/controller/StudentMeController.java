@@ -28,6 +28,7 @@ public class StudentMeController {
     @GetMapping
     public StudentProfileResponse getStudentProfile() {
         String email = authUtil.getEmail();
+
         Student student = studentRepository.findByUserEmail(email)
                 .orElseThrow(() -> new RuntimeException("Student with email " + email + " not found"));
 
@@ -52,7 +53,7 @@ public class StudentMeController {
         Student student = studentRepository.findByUserEmail(email)
                 .orElseThrow(() -> new RuntimeException("Student with email " + email + " not found"));
 
-        Allocation alloc = allocationRepository.findByStudentIdAndActiveTrue(student.getId())
+        Allocation alloc = allocationRepository.findByStudentId(student.getId())
                 .orElseThrow(() -> new RuntimeException("No active allocation"));
 
         StudentRoomResponse response = new StudentRoomResponse();

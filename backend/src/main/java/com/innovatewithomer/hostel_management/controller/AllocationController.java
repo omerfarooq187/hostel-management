@@ -1,11 +1,13 @@
 package com.innovatewithomer.hostel_management.controller;
 
+import com.innovatewithomer.hostel_management.config.UserPrincipal;
 import com.innovatewithomer.hostel_management.entities.Allocation;
 import com.innovatewithomer.hostel_management.entities.Room;
 import com.innovatewithomer.hostel_management.entities.Student;
 import com.innovatewithomer.hostel_management.repositories.AllocationRepository;
 import com.innovatewithomer.hostel_management.repositories.RoomRepository;
 import com.innovatewithomer.hostel_management.repositories.StudentRepository;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +16,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin/allocations")
 public class AllocationController {
-    private AllocationRepository allocationRepository;
-    private RoomRepository roomRepository;
-    private StudentRepository studentRepository;
+    private final AllocationRepository allocationRepository;
+    private final RoomRepository roomRepository;
+    private final StudentRepository studentRepository;
 
     public AllocationController(AllocationRepository allocationRepository, RoomRepository roomRepository, StudentRepository studentRepository) {
         this.allocationRepository = allocationRepository;
@@ -25,20 +27,21 @@ public class AllocationController {
     }
 
     @GetMapping
-    public Long getAllAllocations() {
-        return allocationRepository.countByActiveTrue();
+    public Long getAllAllocations(@RequestParam Long hostelId) {
+        return allocationRepository.countByRoom_Hostel_IdAndActiveTrue(hostelId);
     }
 
     @GetMapping("/history")
-    public List<Allocation> getAllocationHistory() {
-        return allocationRepository.findAll();
+    public List<Allocation> getAllocationHistory(@RequestParam Long hostelId) {
+        return allocationRepository.findByStudent_Hostel_Id(hostelId);
     }
 
     @PostMapping("/student/{studentId}/room/{roomId}/bed/{bedNumber}")
     public Allocation allocateRoom(
             @PathVariable Long studentId,
             @PathVariable Long roomId,
-            @PathVariable int bedNumber
+            @PathVariable int bedNumber,
+            @RequestParam Long hostelId
     ) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(()-> new RuntimeException("Student not found"));
@@ -50,11 +53,11 @@ public class AllocationController {
             throw new RuntimeException("Invalid bed number for this room");
         }
 
-        if (allocationRepository.findByStudentIdAndActiveTrue(studentId).isPresent()) {
+        if (allocationRepository.findByStudentIdAndStudent_hostel_IdAndActiveTrue(studentId, hostelId).isPresent()) {
             throw new RuntimeException("Student already has an active allocation");
         }
 
-        if (allocationRepository.findByRoomIdAndBedNumberAndActiveTrue(roomId, bedNumber).isPresent()) {
+        if (allocationRepository.findByRoomIdAndRoom_Hostel_IdAndBedNumberAndActiveTrue(roomId, hostelId, bedNumber).isPresent()) {
             throw new RuntimeException("Bed already occupied");
         }
 
@@ -85,21 +88,22 @@ public class AllocationController {
     }
 
     @GetMapping("/student/{studentId}")
-    public Allocation getStudentAllocation(@PathVariable Long studentId) {
-        return allocationRepository.findByStudentIdAndActiveTrue(studentId)
+    public Allocation getStudentAllocation(@PathVariable Long studentId, @RequestParam  Long hostelId) {
+        return allocationRepository.findByStudentIdAndStudent_hostel_IdAndActiveTrue(studentId, hostelId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
     }
 
     @GetMapping("/student/{studentId}/history")
-    public List<Allocation> getStudentAllocationHistory(@PathVariable Long studentId) {
-        return allocationRepository.findByStudentIdOrderByIdDesc(studentId);
+    public List<Allocation> getStudentAllocationHistory(@PathVariable Long studentId, @RequestParam Long hostelId) {
+        return allocationRepository.findByStudentIdAndStudent_Hostel_IdOrderByIdDesc(studentId, hostelId);
     }
 
 
     @PostMapping("/student/{studentId}/room/{roomId}")
     public Allocation autoAllocate(
             @PathVariable Long studentId,
-            @PathVariable Long roomId
+            @PathVariable Long roomId,
+            @RequestParam Long hostelId
     ) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
@@ -107,7 +111,7 @@ public class AllocationController {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        if (allocationRepository.findByStudentIdAndActiveTrue(studentId).isPresent()) {
+        if (allocationRepository.findByStudentIdAndStudent_hostel_IdAndActiveTrue(studentId, hostelId).isPresent()) {
             throw new RuntimeException("Student already has a room");
         }
 
@@ -147,14 +151,15 @@ public class AllocationController {
     @PostMapping("/transfer/student/{studentId}/room/{roomId}")
     public Allocation transferRoom(
             @PathVariable Long studentId,
-            @PathVariable Long roomId
+            @PathVariable Long roomId,
+            @RequestParam Long hostelId
     ) {
-        allocationRepository.findByStudentIdAndActiveTrue(studentId)
+        allocationRepository.findByStudentIdAndStudent_hostel_IdAndActiveTrue(studentId, hostelId)
                 .ifPresent(existing -> {
                     existing.setActive(false);
                     allocationRepository.save(existing);
                 });
 
-        return autoAllocate(studentId, roomId);
+        return autoAllocate(studentId, roomId,  hostelId);
     }
 }

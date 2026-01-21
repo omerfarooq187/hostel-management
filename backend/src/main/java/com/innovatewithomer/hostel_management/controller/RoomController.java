@@ -1,13 +1,18 @@
 package com.innovatewithomer.hostel_management.controller;
 
+import com.innovatewithomer.hostel_management.config.UserPrincipal;
 import com.innovatewithomer.hostel_management.dto.BedStatusDto;
 import com.innovatewithomer.hostel_management.dto.RoomStatusResponse;
 import com.innovatewithomer.hostel_management.dto.RoomStudentResponse;
 import com.innovatewithomer.hostel_management.entities.Allocation;
+import com.innovatewithomer.hostel_management.entities.Hostel;
 import com.innovatewithomer.hostel_management.entities.Room;
 import com.innovatewithomer.hostel_management.repositories.AllocationRepository;
 import com.innovatewithomer.hostel_management.repositories.RoomRepository;
+import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -15,29 +20,41 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/admin/rooms")
 public class RoomController {
 
-    private RoomRepository roomRepository;
-    private AllocationRepository allocationRepository;
+    private final RoomRepository roomRepository;
+    private final AllocationRepository allocationRepository;
+    EntityManager entityManager;
 
-    public RoomController(RoomRepository roomRepository, AllocationRepository allocationRepository) {
+    public RoomController(RoomRepository roomRepository, AllocationRepository allocationRepository, EntityManager entityManager) {
         this.roomRepository = roomRepository;
         this.allocationRepository = allocationRepository;
+        this.entityManager = entityManager;
     }
 
     @PostMapping
-    public Room createRoom(@RequestBody Room room) {
-        if (roomRepository.findById(room.getId()).isPresent()) {
-            throw new RuntimeException("Room with Block "+room.getBlock()+" and room number" + room.getRoomNumber()+ "already exists");
+    public Room createRoom(@RequestBody Room room, @RequestParam Long hostelId) {
+
+        if (hostelId == null) {
+            throw new RuntimeException("Hostel is required to create a room");
         }
+
+        Hostel hostel = entityManager.getReference(
+                Hostel.class,
+                hostelId
+        );
+
+        room.setHostel(hostel);
         return roomRepository.save(room);
     }
 
+
     @GetMapping
-    public List<Room> getAll() {
-        return roomRepository.findAll();
+    public List<Room> getAll(@RequestParam Long hostelId) {
+        return roomRepository.findByHostel_Id(hostelId);
     }
 
     @GetMapping("/{id}")
@@ -75,11 +92,11 @@ public class RoomController {
 
 
     @GetMapping("/{roomId}/status")
-    public RoomStatusResponse getRoomStatus(@PathVariable Long roomId) {
+    public RoomStatusResponse getRoomStatus(@PathVariable Long roomId, @RequestParam Long hostelId) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        long occupied = allocationRepository.countByRoomIdAndActiveTrue(roomId);
+        long occupied = allocationRepository.countByRoomIdAndRoom_Hostel_IdAndActiveTrue(roomId, hostelId);
 
         RoomStatusResponse response = new RoomStatusResponse();
         response.setRoomId(roomId);
@@ -93,11 +110,11 @@ public class RoomController {
     }
 
     @GetMapping("/{roomId}/students")
-    public List<RoomStudentResponse> getRoomStudents(@PathVariable Long roomId) {
+    public List<RoomStudentResponse> getRoomStudents(@PathVariable Long roomId, @RequestParam Long hostelId) {
 
         roomRepository.findById(roomId).orElseThrow(() -> new RuntimeException("Room not found"));
 
-        return allocationRepository.findByRoomIdAndActiveTrueOrderByBedNumber(roomId)
+        return allocationRepository.findByRoomIdAndRoom_Hostel_IdAndActiveTrueOrderByBedNumber(roomId, hostelId)
                 .stream()
                 .map(
                         alloc -> {

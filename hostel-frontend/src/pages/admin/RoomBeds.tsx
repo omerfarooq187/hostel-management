@@ -70,11 +70,14 @@ export default function RoomBeds() {
 
   const loadData = async () => {
     setLoading(true);
+    const hostelId = localStorage.getItem("selectedHostelId");
     try {
       const [roomRes, allocRes, studentsRes] = await Promise.all([
         api.get(`/api/admin/rooms/${roomId}`),
         api.get(`/api/admin/allocations/room/${roomId}`),
-        api.get("/api/admin/students"),
+        api.get("/api/admin/students", {
+          params: {hostelId}
+        }),
       ]);
 
       setRoom(roomRes.data);
@@ -103,9 +106,14 @@ export default function RoomBeds() {
     }
 
     setActionLoading(true);
+    const hostelId = localStorage.getItem("selectedHostelId");
     try {
       await api.post(
-        `/api/admin/allocations/student/${selectedStudent}/room/${roomId}/bed/${bedNumber}`
+        `/api/admin/allocations/student/${selectedStudent}/room/${roomId}/bed/${bedNumber}`,
+        null,
+        {
+          params: {hostelId}
+        }
       );
       await loadData();
       setSelectedStudent("");
