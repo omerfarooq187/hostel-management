@@ -15,14 +15,13 @@ import {
   ShieldCheckIcon,
   CalendarIcon,
   DocumentTextIcon,
-  ChatBubbleLeftRightIcon,
-  KeyIcon,
   CurrencyDollarIcon,
-  ReceiptPercentIcon,
   ArrowDownIcon,
   CheckCircleIcon,
   ClockIcon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
+import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 
 // Bed Icon Component
 const BedIcon = ({ className = "h-6 w-6" }) => (
@@ -77,7 +76,6 @@ export default function Profile() {
         const roomRes = await api.get("/api/student/me/room");
         setRoom(roomRes.data);
       } catch (roomErr) {
-        // Room might not be allocated yet
         setRoom(null);
       }
 
@@ -85,7 +83,6 @@ export default function Profile() {
         const feesRes = await api.get("/api/student/me/fees");
         setFees(feesRes.data);
       } catch (feesErr) {
-        // Fees might not be available yet
         setFees([]);
       }
     } catch (err) {
@@ -125,10 +122,9 @@ export default function Profile() {
     setDownloading(prev => ({ ...prev, [feeId]: true }));
     try {
       const response = await api.get(`/api/student/me/fees/${feeId}/receipt`, {
-        responseType: 'blob', // Important for file downloads
+        responseType: 'blob',
       });
 
-      // Create a blob URL for the file
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -165,28 +161,28 @@ export default function Profile() {
     switch (status?.toLowerCase()) {
       case 'paid':
         return (
-          <span className="px-2.5 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-            <CheckCircleIcon className="h-3 w-3 inline mr-1" />
+          <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+            <CheckCircleIcon className="h-4 w-4 inline mr-1" />
             Paid
           </span>
         );
       case 'pending':
         return (
-          <span className="px-2.5 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
-            <ClockIcon className="h-3 w-3 inline mr-1" />
+          <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+            <ClockIcon className="h-4 w-4 inline mr-1" />
             Pending
           </span>
         );
       case 'overdue':
         return (
-          <span className="px-2.5 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
-            <ExclamationCircleIcon className="h-3 w-3 inline mr-1" />
+          <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+            <ExclamationCircleIcon className="h-4 w-4 inline mr-1" />
             Overdue
           </span>
         );
       default:
         return (
-          <span className="px-2.5 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+          <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
             Unknown
           </span>
         );
@@ -204,16 +200,16 @@ export default function Profile() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background-alt p-4 font-sans pt-24">
-        <div className="bg-white rounded-2xl shadow-lg border border-border-color p-8 max-w-md text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-            <ExclamationCircleIcon className="h-8 w-8 text-red-600" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 font-sans pt-24">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 max-w-md text-center animate-fade-in-up">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-50 rounded-full mb-4">
+            <ExclamationCircleIcon className="h-8 w-8 text-red-500" />
           </div>
-          <h3 className="text-xl font-bold text-heading-color mb-2">Error Loading Profile</h3>
-          <p className="text-foreground mb-6">{error}</p>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">Error Loading Profile</h3>
+          <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={fetchProfile}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-heading-color hover:bg-primary text-light-color rounded-btn font-medium transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
           >
             <ArrowPathIcon className="h-4 w-4" />
             Retry
@@ -224,25 +220,32 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-background-alt font-sans pt-20">
+    <div className="min-h-screen bg-gray-50 font-sans pt-24">
       {/* Profile Header */}
-      <div className="bg-gradient-to-r from-heading-color/90 via-dark-shade/90 to-secondary/90 mt-6">
+      <div className="bg-gradient-to-r from-blue-300 to-blue-200">
         <div className="container mx-auto px-4 py-12">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-light-color/20 backdrop-blur-sm rounded-2xl">
-                <UserCircleIcon className="h-12 w-12 text-light-color" />
+              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+                <UserCircleIcon className="h-12 w-12 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-medium text-light-color">
+                <h1 className="text-3xl font-bold text-white">
                   {student?.name || "My Profile"}
                 </h1>
-                <p className="text-light-color/80 mt-1">Manage your account, allocation, and fees</p>
+                <div className="flex items-center gap-3 mt-1">
+                  <p className="text-white/90">Manage your account and information</p>
+                  <div className="flex items-center">
+                    {[1,2,3,4,5].map((_, i) => (
+                      <StarIconSolid key={i} className="h-3 w-3 text-yellow-300 fill-current" />
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
             <button
               onClick={fetchProfile}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-light-color/20 backdrop-blur-sm hover:bg-light-color/30 text-light-color rounded-btn font-medium transition-all duration-300"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg font-medium transition-all duration-300 border border-white/20"
             >
               <ArrowPathIcon className="h-4 w-4" />
               Refresh
@@ -253,23 +256,23 @@ export default function Profile() {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 -mt-8 pb-12">
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left Column - Personal Information & Fees */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Left Column - Personal Information */}
+          <div className="lg:col-span-2 space-y-8">
             {/* Personal Details Card */}
-            <div className="bg-white rounded-2xl shadow-lg border border-border-color">
-              <div className="p-6 border-b border-border-color">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 animate-fade-in-up">
+              <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 text-primary rounded-xl">
-                      <UserCircleIcon className="h-6 w-6" />
+                    <div className="p-2 bg-blue-100 rounded-xl">
+                      <UserCircleIcon className="h-6 w-6 text-blue-600" />
                     </div>
-                    <h2 className="text-xl font-semibold text-heading-color">Personal Details</h2>
+                    <h2 className="text-xl font-semibold text-gray-800">Personal Details</h2>
                   </div>
                   {!editMode && (
                     <button
                       onClick={() => setEditMode(true)}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-primary-shade hover:bg-primary hover:text-light-color text-primary rounded-btn font-medium transition-colors"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg font-medium transition-colors border border-blue-200"
                     >
                       <PencilIcon className="h-4 w-4" />
                       Edit Profile
@@ -282,27 +285,27 @@ export default function Profile() {
                 {editMode ? (
                   <div className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-heading-color mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Full Name
                       </label>
                       <input
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 border border-border-color rounded-btn focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter your full name"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-heading-color mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Phone Number
                       </label>
                       <input
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 border border-border-color rounded-btn focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter your phone number"
                       />
                     </div>
@@ -311,7 +314,7 @@ export default function Profile() {
                       <button
                         onClick={handleUpdate}
                         disabled={updating}
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-heading-color hover:bg-primary text-light-color rounded-btn font-medium transition-colors duration-300 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                       >
                         {updating ? (
                           <>
@@ -327,7 +330,7 @@ export default function Profile() {
                       </button>
                       <button
                         onClick={() => setEditMode(false)}
-                        className="px-6 py-3 border-2 border-heading-color text-heading-color hover:bg-heading-color hover:text-light-color rounded-btn font-medium transition-colors"
+                        className="px-6 py-3 border-2 border-gray-600 text-gray-600 hover:bg-gray-600 hover:text-white rounded-lg font-medium transition-colors"
                       >
                         Cancel
                       </button>
@@ -339,37 +342,37 @@ export default function Profile() {
                       icon={<UserCircleIcon className="h-5 w-5" />}
                       label="Name"
                       value={student?.name}
-                      color="primary"
+                      color="blue"
                     />
                     <InfoItem
                       icon={<EnvelopeIcon className="h-5 w-5" />}
                       label="Email"
                       value={student?.email}
-                      color="secondary"
+                      color="blue"
                     />
                     <InfoItem
                       icon={<AcademicCapIcon className="h-5 w-5" />}
                       label="Roll Number"
                       value={student?.studentRequest?.rollNo}
-                      color="primary"
+                      color="blue"
                     />
                     <InfoItem
                       icon={<PhoneIcon className="h-5 w-5" />}
                       label="Phone"
                       value={student?.studentRequest?.phone || "Not provided"}
-                      color="secondary"
+                      color="blue"
                     />
                     <InfoItem
                       icon={<UserGroupIcon className="h-5 w-5" />}
                       label="Guardian Name"
                       value={student?.studentRequest?.guardianName || "Not provided"}
-                      color="primary"
+                      color="blue"
                     />
                     <InfoItem
                       icon={<PhoneIcon className="h-5 w-5" />}
                       label="Guardian Phone"
                       value={student?.studentRequest?.guardianPhoneNumber || "Not provided"}
-                      color="secondary"
+                      color="blue"
                     />
                   </div>
                 )}
@@ -377,16 +380,16 @@ export default function Profile() {
             </div>
 
             {/* Fee Payment Card */}
-            <div className="bg-white rounded-2xl shadow-lg border border-border-color">
-              <div className="p-6 border-b border-border-color">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+              <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-500/10 text-green-600 rounded-xl">
-                      <CurrencyDollarIcon className="h-6 w-6" />
+                    <div className="p-2 bg-green-100 rounded-xl">
+                      <CurrencyDollarIcon className="h-6 w-6 text-green-600" />
                     </div>
-                    <h2 className="text-xl font-semibold text-heading-color">Fee Payments</h2>
+                    <h2 className="text-xl font-semibold text-gray-800">Fee Payments</h2>
                   </div>
-                  <span className="text-sm text-meta-color">
+                  <span className="text-sm text-gray-600 font-medium">
                     {fees.length} payment{fees.length !== 1 ? 's' : ''} found
                   </span>
                 </div>
@@ -394,55 +397,59 @@ export default function Profile() {
 
               <div className="p-6">
                 {fees.length > 0 ? (
-                  <div className="space-y-6">
+                  <div className="space-y-8">
                     {/* Latest Fee Highlight */}
                     {latestFee && (
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-5">
-                        <div className="flex items-center justify-between mb-4">
+                      <div className="bg-green-50 border border-green-200 rounded-xl p-6">
+                        <div className="flex items-center justify-between mb-6">
                           <div>
-                            <h3 className="text-lg font-semibold text-heading-color mb-1">
-                              Latest Payment
-                            </h3>
-                            <p className="text-sm text-foreground">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full border border-green-300 mb-3">
+                              <SparklesIcon className="h-3 w-3 text-green-600" />
+                              <span className="text-xs font-medium text-green-700">LATEST PAYMENT</span>
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-800 mb-2">
                               {latestFee.description || "Hostel Fee Payment"}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Payment reference: {latestFee.id}
                             </p>
                           </div>
                           {getStatusBadge(latestFee.status)}
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 border border-border-color">
-                            <div className="text-sm text-meta-color mb-1">Amount</div>
-                            <div className="font-bold text-heading-color text-lg">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <div className="text-sm text-gray-600 mb-1 font-medium">Amount</div>
+                            <div className="font-bold text-gray-800 text-xl">
                               {formatCurrency(latestFee.amount || 0)}
                             </div>
                           </div>
-                          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 border border-border-color">
-                            <div className="text-sm text-meta-color mb-1">Due Date</div>
-                            <div className="font-semibold text-heading-color">
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <div className="text-sm text-gray-600 mb-1 font-medium">Due Date</div>
+                            <div className="font-semibold text-gray-800">
                               {latestFee.dueDate ? formatDate(latestFee.dueDate) : "N/A"}
                             </div>
                           </div>
-                          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 border border-border-color">
-                            <div className="text-sm text-meta-color mb-1">Paid Date</div>
-                            <div className="font-semibold text-heading-color">
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <div className="text-sm text-gray-600 mb-1 font-medium">Paid Date</div>
+                            <div className="font-semibold text-gray-800">
                               {latestFee.paymentDate ? formatDate(latestFee.paymentDate) : "Not Paid"}
                             </div>
                           </div>
-                          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 border border-border-color">
-                            <div className="text-sm text-meta-color mb-1">Transaction ID</div>
-                            <div className="font-semibold text-heading-color text-sm truncate">
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <div className="text-sm text-gray-600 mb-1 font-medium">Transaction ID</div>
+                            <div className="font-semibold text-gray-800 text-sm truncate">
                               {latestFee.transactionId || "N/A"}
                             </div>
                           </div>
                         </div>
 
                         {latestFee.status?.toLowerCase() === 'paid' && (
-                          <div className="flex gap-3">
+                          <div className="flex gap-4">
                             <button
                               onClick={() => downloadReceipt(latestFee.id)}
                               disabled={downloading[latestFee.id]}
-                              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-heading-color hover:bg-primary text-light-color rounded-btn font-medium transition-colors disabled:opacity-50"
+                              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                             >
                               {downloading[latestFee.id] ? (
                                 <>
@@ -458,12 +465,11 @@ export default function Profile() {
                             </button>
                             <button
                               onClick={() => {
-                                // View receipt in new tab
                                 window.open(`/api/student/me/fees/${latestFee.id}/receipt`, '_blank');
                               }}
-                              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-heading-color text-heading-color hover:bg-heading-color hover:text-light-color rounded-btn font-medium transition-colors"
+                              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 border-2 border-gray-600 text-gray-600 hover:bg-gray-600 hover:text-white rounded-lg font-medium transition-colors"
                             >
-                              <ReceiptPercentIcon className="h-4 w-4" />
+                              <DocumentTextIcon className="h-4 w-4" />
                               View Receipt
                             </button>
                           </div>
@@ -473,40 +479,45 @@ export default function Profile() {
 
                     {/* All Fees Table */}
                     <div>
-                      <h3 className="text-lg font-semibold text-heading-color mb-4">Payment History</h3>
-                      <div className="overflow-x-auto">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-800">Payment History</h3>
+                        <span className="text-sm text-gray-600 font-medium">
+                          Showing {fees.length} payments
+                        </span>
+                      </div>
+                      <div className="overflow-x-auto rounded-lg border border-gray-200">
                         <table className="w-full">
                           <thead>
-                            <tr className="border-b border-border-color">
-                              <th className="text-left py-3 px-4 text-sm font-medium text-meta-color">Description</th>
-                              <th className="text-left py-3 px-4 text-sm font-medium text-meta-color">Amount</th>
-                              <th className="text-left py-3 px-4 text-sm font-medium text-meta-color">Due Date</th>
-                              <th className="text-left py-3 px-4 text-sm font-medium text-meta-color">Status</th>
-                              <th className="text-left py-3 px-4 text-sm font-medium text-meta-color">Actions</th>
+                            <tr className="bg-gray-50 border-b border-gray-200">
+                              <th className="text-left py-4 px-6 text-sm font-medium text-gray-700">Description</th>
+                              <th className="text-left py-4 px-6 text-sm font-medium text-gray-700">Amount</th>
+                              <th className="text-left py-4 px-6 text-sm font-medium text-gray-700">Due Date</th>
+                              <th className="text-left py-4 px-6 text-sm font-medium text-gray-700">Status</th>
+                              <th className="text-left py-4 px-6 text-sm font-medium text-gray-700">Actions</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-border-color">
+                          <tbody className="divide-y divide-gray-200">
                             {fees.map((fee) => (
-                              <tr key={fee.id} className="hover:bg-primary-shade/30 transition-colors">
-                                <td className="py-3 px-4">
-                                  <div className="font-medium text-heading-color">{fee.description}</div>
-                                  <div className="text-xs text-meta-color">{fee.id}</div>
+                              <tr key={fee.id} className="hover:bg-gray-50 transition-colors">
+                                <td className="py-4 px-6">
+                                  <div className="font-medium text-gray-800">{fee.description}</div>
+                                  <div className="text-xs text-gray-500 mt-1">{fee.id}</div>
                                 </td>
-                                <td className="py-3 px-4 font-semibold text-heading-color">
+                                <td className="py-4 px-6 font-semibold text-gray-800">
                                   {formatCurrency(fee.amount || 0)}
                                 </td>
-                                <td className="py-3 px-4 text-foreground">
+                                <td className="py-4 px-6 text-gray-700">
                                   {fee.dueDate ? formatDate(fee.dueDate) : "N/A"}
                                 </td>
-                                <td className="py-3 px-4">
+                                <td className="py-4 px-6">
                                   {getStatusBadge(fee.status)}
                                 </td>
-                                <td className="py-3 px-4">
+                                <td className="py-4 px-6">
                                   {fee.status?.toLowerCase() === 'paid' ? (
                                     <button
                                       onClick={() => downloadReceipt(fee.id)}
                                       disabled={downloading[fee.id]}
-                                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary-shade hover:bg-primary hover:text-light-color text-primary rounded-btn text-sm font-medium transition-colors disabled:opacity-50"
+                                      className="inline-flex items-center gap-1 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                                     >
                                       {downloading[fee.id] ? (
                                         <ArrowPathIcon className="h-3 w-3 animate-spin" />
@@ -516,7 +527,7 @@ export default function Profile() {
                                       Receipt
                                     </button>
                                   ) : (
-                                    <span className="text-sm text-meta-color">No receipt</span>
+                                    <span className="text-sm text-gray-500">No receipt</span>
                                   )}
                                 </td>
                               </tr>
@@ -527,15 +538,15 @@ export default function Profile() {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-shade rounded-full mb-4">
-                      <CurrencyDollarIcon className="h-8 w-8 text-primary" />
+                  <div className="text-center py-12">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-50 rounded-full mb-6">
+                      <CurrencyDollarIcon className="h-10 w-10 text-blue-500" />
                     </div>
-                    <h3 className="text-lg font-semibold text-heading-color mb-2">No Fee Records</h3>
-                    <p className="text-foreground mb-4">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-3">No Fee Records</h3>
+                    <p className="text-gray-600 mb-6 max-w-md mx-auto">
                       Your fee records will appear here once they are added by the administration.
                     </p>
-                    <span className="inline-block px-4 py-2 bg-primary-shade text-primary rounded-full font-medium">
+                    <span className="inline-block px-6 py-2 bg-blue-50 text-blue-600 rounded-full font-medium border border-blue-200">
                       No Payments Yet
                     </span>
                   </div>
@@ -544,80 +555,83 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Right Column - Room & Quick Actions */}
-          <div className="space-y-6">
+          {/* Right Column - Room & Account Status */}
+          <div className="space-y-8">
             {/* Room Allocation Card */}
-            <div className="bg-white rounded-2xl shadow-lg border border-border-color overflow-hidden">
-              <div className="p-6 border-b border-border-color">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+              <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-secondary/10 text-secondary rounded-xl">
-                    <BuildingOfficeIcon className="h-6 w-6" />
+                  <div className="p-2 bg-blue-100 rounded-xl">
+                    <BuildingOfficeIcon className="h-6 w-6 text-blue-600" />
                   </div>
-                  <h2 className="text-xl font-semibold text-heading-color">Room Allocation</h2>
+                  <h2 className="text-xl font-semibold text-gray-800">Room Allocation</h2>
                 </div>
               </div>
 
               <div className="p-6">
                 {room ? (
                   <div className="space-y-6">
-                    <div className="bg-gradient-to-br from-primary/5 to-secondary/5 border border-border-color rounded-xl p-5">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="text-lg font-bold text-heading-color">
-                          {room.block} - Room {room.roomNumber}
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <div>
+                          <div className="text-lg font-bold text-gray-800">
+                            {room.block} - Room {room.roomNumber}
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">Your current accommodation</p>
                         </div>
-                        <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
+                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                           Allocated
                         </span>
                       </div>
                       
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-border-color">
-                          <div className="flex items-center gap-2 mb-1">
-                            <HomeIcon className="h-4 w-4 text-meta-color" />
-                            <span className="text-sm text-foreground">Block</span>
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <HomeIcon className="h-4 w-4 text-blue-600" />
+                            <span className="text-sm font-medium text-gray-700">Block</span>
                           </div>
-                          <div className="font-semibold text-heading-color">{room.block}</div>
+                          <div className="font-bold text-gray-800 text-lg">{room.block}</div>
                         </div>
-                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-border-color">
-                          <div className="flex items-center gap-2 mb-1">
-                            <BuildingOfficeIcon className="h-4 w-4 text-meta-color" />
-                            <span className="text-sm text-foreground">Room</span>
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <BuildingOfficeIcon className="h-4 w-4 text-blue-600" />
+                            <span className="text-sm font-medium text-gray-700">Room</span>
                           </div>
-                          <div className="font-semibold text-heading-color">{room.roomNumber}</div>
+                          <div className="font-bold text-gray-800 text-lg">{room.roomNumber}</div>
                         </div>
-                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-border-color">
-                          <div className="flex items-center gap-2 mb-1">
-                            <BedIcon className="h-4 w-4 text-meta-color" />
-                            <span className="text-sm text-foreground">Bed</span>
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <BedIcon className="h-4 w-4 text-blue-600" />
+                            <span className="text-sm font-medium text-gray-700">Bed</span>
                           </div>
-                          <div className="font-semibold text-heading-color">{room.bedNumber}</div>
+                          <div className="font-bold text-gray-800 text-lg">{room.bedNumber}</div>
                         </div>
-                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-border-color">
-                          <div className="flex items-center gap-2 mb-1">
-                            <CalendarIcon className="h-4 w-4 text-meta-color" />
-                            <span className="text-sm text-foreground">Status</span>
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CalendarIcon className="h-4 w-4 text-blue-600" />
+                            <span className="text-sm font-medium text-gray-700">Status</span>
                           </div>
-                          <div className="font-semibold text-primary">Active</div>
+                          <div className="font-bold text-green-600">Active</div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="p-4 bg-primary-shade border border-primary/20 rounded-xl">
-                      <p className="text-sm text-heading-color">
-                        Your room allocation is currently active. Please contact the admin office for any changes or issues.
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                      <p className="text-sm text-gray-700 font-medium">
+                        Your room allocation is currently active. Contact the admin office for any changes or issues.
                       </p>
                     </div>
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-shade rounded-full mb-4">
-                      <HomeIcon className="h-8 w-8 text-primary" />
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-full mb-4">
+                      <HomeIcon className="h-8 w-8 text-blue-500" />
                     </div>
-                    <h3 className="text-lg font-semibold text-heading-color mb-2">No Room Allocated</h3>
-                    <p className="text-foreground mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">No Room Allocated</h3>
+                    <p className="text-gray-600 mb-6">
                       Your room allocation is pending. Please wait for admin assignment.
                     </p>
-                    <span className="inline-block px-4 py-2 bg-primary-shade text-primary rounded-full font-medium">
+                    <span className="inline-block px-4 py-2 bg-blue-50 text-blue-600 rounded-full font-medium border border-blue-200">
                       Pending Allocation
                     </span>
                   </div>
@@ -626,85 +640,39 @@ export default function Profile() {
             </div>
 
             {/* Account Status Card */}
-            <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border border-border-color rounded-2xl p-6">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-primary text-light-color rounded-xl">
-                  <ShieldCheckIcon className="h-6 w-6" />
+                <div className="p-2 bg-blue-100 rounded-xl">
+                  <ShieldCheckIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-heading-color">Account Status</h3>
-                  <p className="text-foreground text-sm">Your current account information</p>
+                  <h3 className="text-lg font-semibold text-gray-800">Account Status</h3>
+                  <p className="text-gray-600 text-sm">Your current account information</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white rounded-xl p-4 border border-border-color">
-                  <div className="text-sm text-meta-color">Account Type</div>
-                  <div className="font-semibold text-heading-color mt-1">Student</div>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-600 font-medium">Account Type</div>
+                  <div className="font-semibold text-gray-800 mt-1">Student</div>
                 </div>
-                <div className="bg-white rounded-xl p-4 border border-border-color">
-                  <div className="text-sm text-meta-color">Fee Status</div>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-600 font-medium">Fee Status</div>
                   <div className={`font-semibold mt-1 ${
                     latestFee?.status?.toLowerCase() === 'paid' ? 'text-green-600' : 
                     latestFee?.status?.toLowerCase() === 'pending' ? 'text-yellow-600' : 
-                    'text-heading-color'
+                    'text-gray-800'
                   }`}>
                     {latestFee?.status || 'N/A'}
                   </div>
                 </div>
-                <div className="bg-white rounded-xl p-4 border border-border-color">
-                  <div className="text-sm text-meta-color">Total Payments</div>
-                  <div className="font-semibold text-heading-color mt-1">{fees.length}</div>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-600 font-medium">Total Payments</div>
+                  <div className="font-semibold text-gray-800 mt-1">{fees.length}</div>
                 </div>
-                <div className="bg-white rounded-xl p-4 border border-border-color">
-                  <div className="text-sm text-meta-color">Last Updated</div>
-                  <div className="font-semibold text-heading-color mt-1">Today</div>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-600 font-medium">Last Updated</div>
+                  <div className="font-semibold text-gray-800 mt-1">Today</div>
                 </div>
-              </div>
-            </div>
-
-            {/* Quick Actions Card */}
-            <div className="bg-white rounded-2xl shadow-lg border border-border-color p-6">
-              <h3 className="text-lg font-semibold text-heading-color mb-6">Quick Actions</h3>
-              <div className="space-y-3">
-                <button className="w-full flex items-center gap-3 p-3 text-left bg-white hover:bg-primary-shade border border-border-color hover:border-primary/20 rounded-xl transition-all duration-300 group">
-                  <div className="p-2 bg-primary/10 text-primary rounded-lg group-hover:bg-primary group-hover:text-light-color transition-colors">
-                    <EnvelopeIcon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-heading-color group-hover:text-primary transition-colors">Contact Admin</div>
-                    <div className="text-sm text-foreground">Request room change or report issues</div>
-                  </div>
-                </button>
-                
-                <button className="w-full flex items-center gap-3 p-3 text-left bg-white hover:bg-primary-shade border border-border-color hover:border-primary/20 rounded-xl transition-all duration-300 group">
-                  <div className="p-2 bg-secondary/10 text-secondary rounded-lg group-hover:bg-secondary group-hover:text-light-color transition-colors">
-                    <ArrowPathIcon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-heading-color group-hover:text-secondary transition-colors">Check Status</div>
-                    <div className="text-sm text-foreground">View latest allocation updates</div>
-                  </div>
-                </button>
-                
-                <button className="w-full flex items-center gap-3 p-3 text-left bg-white hover:bg-primary-shade border border-border-color hover:border-primary/20 rounded-xl transition-all duration-300 group">
-                  <div className="p-2 bg-green-500/10 text-green-600 rounded-lg group-hover:bg-green-600 group-hover:text-light-color transition-colors">
-                    <CurrencyDollarIcon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-heading-color group-hover:text-green-600 transition-colors">Pay Fees</div>
-                    <div className="text-sm text-foreground">Make fee payment online</div>
-                  </div>
-                </button>
-                
-                <button className="w-full flex items-center gap-3 p-3 text-left bg-white hover:bg-primary-shade border border-border-color hover:border-primary/20 rounded-xl transition-all duration-300 group">
-                  <div className="p-2 bg-heading-color/10 text-heading-color rounded-lg group-hover:bg-heading-color group-hover:text-light-color transition-colors">
-                    <KeyIcon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-heading-color">Change Password</div>
-                    <div className="text-sm text-foreground">Update your account password</div>
-                  </div>
-                </button>
               </div>
             </div>
           </div>
@@ -716,18 +684,19 @@ export default function Profile() {
 
 const InfoItem = ({ icon, label, value, color }) => {
   const colorClasses = {
-    primary: "bg-primary/10 text-primary border-primary/20",
-    secondary: "bg-secondary/10 text-secondary border-secondary/20",
+    blue: "bg-blue-50 border-blue-200 text-blue-600",
+    green: "bg-green-50 border-green-200 text-green-600",
+    purple: "bg-purple-50 border-purple-200 text-purple-600",
   };
 
   return (
-    <div className="flex items-start gap-3 p-4 bg-white border border-border-color rounded-xl hover:border-primary/30 transition-colors duration-300">
-      <div className={`p-2 rounded-lg ${colorClasses[color] || colorClasses.primary}`}>
+    <div className="flex items-start gap-3 p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-300 transition-colors duration-300 hover:shadow-sm">
+      <div className={`p-2.5 rounded-lg ${colorClasses[color] || colorClasses.blue}`}>
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-sm text-meta-color">{label}</div>
-        <div className="font-medium text-heading-color mt-1 truncate">
+        <div className="text-sm text-gray-600 font-medium mb-1">{label}</div>
+        <div className="font-semibold text-gray-800 truncate">
           {value || "Not provided"}
         </div>
       </div>
@@ -737,42 +706,42 @@ const InfoItem = ({ icon, label, value, color }) => {
 
 function ProfileSkeleton() {
   return (
-    <div className="min-h-screen bg-background-alt font-sans animate-pulse pt-20">
+    <div className="min-h-screen bg-gray-50 font-sans animate-pulse pt-24">
       {/* Header Skeleton */}
-      <div className="bg-gradient-to-r from-heading-color/90 via-dark-shade/90 to-secondary/90 mt-6">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-500">
         <div className="container mx-auto px-4 py-12">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 bg-light-color/20 rounded-2xl"></div>
+              <div className="h-16 w-16 bg-white/20 rounded-2xl"></div>
               <div className="space-y-2">
-                <div className="h-8 w-48 bg-light-color/20 rounded"></div>
-                <div className="h-4 w-32 bg-light-color/20 rounded"></div>
+                <div className="h-8 w-48 bg-white/20 rounded"></div>
+                <div className="h-4 w-32 bg-white/20 rounded"></div>
               </div>
             </div>
-            <div className="h-10 w-32 bg-light-color/20 rounded-btn"></div>
+            <div className="h-10 w-32 bg-white/20 rounded-lg"></div>
           </div>
         </div>
       </div>
 
       {/* Content Skeleton */}
       <div className="container mx-auto px-4 -mt-8 pb-12">
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-2xl border border-border-color">
-              <div className="p-6 border-b border-border-color">
+          <div className="lg:col-span-2 space-y-8">
+            <div className="bg-white rounded-2xl border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-gray-200 rounded-xl"></div>
-                    <div className="h-6 w-40 bg-gray-200 rounded"></div>
+                    <div className="h-10 w-10 bg-gray-300 rounded-xl"></div>
+                    <div className="h-6 w-40 bg-gray-300 rounded"></div>
                   </div>
-                  <div className="h-10 w-32 bg-gray-200 rounded-btn"></div>
+                  <div className="h-10 w-32 bg-gray-300 rounded-lg"></div>
                 </div>
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {[1, 2, 3, 4, 5, 6].map(i => (
-                    <div key={i} className="flex items-start gap-3 p-4 bg-gray-100 rounded-xl">
+                    <div key={i} className="flex items-start gap-3 p-4 bg-gray-100 rounded-lg">
                       <div className="h-10 w-10 bg-gray-300 rounded-lg"></div>
                       <div className="space-y-2 flex-1">
                         <div className="h-4 w-20 bg-gray-300 rounded"></div>
@@ -784,36 +753,35 @@ function ProfileSkeleton() {
               </div>
             </div>
 
-            {/* Fee Section Skeleton */}
-            <div className="bg-white rounded-2xl border border-border-color">
-              <div className="p-6 border-b border-border-color">
+            <div className="bg-white rounded-2xl border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-gray-200 rounded-xl"></div>
-                    <div className="h-6 w-40 bg-gray-200 rounded"></div>
+                    <div className="h-10 w-10 bg-gray-300 rounded-xl"></div>
+                    <div className="h-6 w-40 bg-gray-300 rounded"></div>
                   </div>
-                  <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                  <div className="h-4 w-24 bg-gray-300 rounded"></div>
                 </div>
               </div>
               <div className="p-6">
-                <div className="h-64 bg-gray-200 rounded-xl"></div>
+                <div className="h-64 bg-gray-300 rounded-xl"></div>
               </div>
             </div>
           </div>
 
           {/* Right Column */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-border-color">
-              <div className="p-6 border-b border-border-color">
+          <div className="space-y-8">
+            <div className="bg-white rounded-2xl border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-gray-200 rounded-xl"></div>
-                  <div className="h-6 w-40 bg-gray-200 rounded"></div>
+                  <div className="h-10 w-10 bg-gray-300 rounded-xl"></div>
+                  <div className="h-6 w-40 bg-gray-300 rounded"></div>
                 </div>
               </div>
               <div className="p-6">
                 <div className="space-y-4">
-                  <div className="h-40 bg-gray-200 rounded-xl"></div>
-                  <div className="h-20 bg-gray-200 rounded-xl"></div>
+                  <div className="h-40 bg-gray-300 rounded-xl"></div>
+                  <div className="h-20 bg-gray-300 rounded-xl"></div>
                 </div>
               </div>
             </div>
