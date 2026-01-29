@@ -38,6 +38,11 @@ export default function StudentsPage() {
   // Student total collection
   const [totalCollections, setTotalCollections] = useState({});
 
+  // Student Allocations
+  const [allocationsMap, setAllocationsMap] = useState({});
+
+  // Active allocations
+  const [activeAllocations, setActiveAllocations] = useState(0);
 
   // Error and success dialogs
   const [errorDialog, setErrorDialog] = useState({
@@ -79,15 +84,19 @@ export default function StudentsPage() {
     setLoading(true);
     const hostelId = localStorage.getItem("selectedHostelId")
     try {
-      const [studentsRes, usersRes] = await Promise.all([
+      const [studentsRes, usersRes, activeAllocationsRes] = await Promise.all([
         api.get("/api/admin/students",
           {params: {hostelId}}
         ),
-        api.get("/api/admin/users")
+        api.get("/api/admin/users"),
+        api.get("/api/admin/allocations/count",
+          {params: {hostelId}}
+        )
       ]);
 
       setStudents(studentsRes.data);
       setUsers(usersRes.data);
+      setActiveAllocations(activeAllocationsRes.data)
 
       console.log(studentsRes.data)
     } catch (err) {
@@ -116,6 +125,20 @@ export default function StudentsPage() {
   }
 };
 
+const fetchStudentAllocation = async (studentId) => {
+  const hostelId = localStorage.getItem("selectedHostelId");
+  const res = await api.get(
+    `/api/admin/allocations/student/${studentId}`,
+    { params: { hostelId } }
+  );
+
+  setAllocationsMap(prev => ({
+    ...prev,
+    [studentId]: res.data
+  }));
+};
+
+
 
   useEffect(() => {
     fetchData();
@@ -124,8 +147,11 @@ export default function StudentsPage() {
   useEffect(() => {
   if (students?.length) {
     students.forEach(student => fetchTotalCollection(student.id));
+    students.forEach(student => fetchStudentAllocation(student.id))
   }
 }, [students]);
+
+console.log(allocationsMap)
 
 
   const openAddModal = () => {
@@ -231,6 +257,7 @@ export default function StudentsPage() {
   if (loading) return <StudentsSkeleton />;
 
   return (
+    
     <div className="space-y-6">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -265,7 +292,7 @@ export default function StudentsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-green-800">Registered Users</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{users.length}</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{users.filter(u => u.role !== "ADMIN").length}</p>
             </div>
             <div className="p-2 bg-green-100 rounded-lg">
               <UserIcon className="h-6 w-6 text-green-600" />
@@ -292,7 +319,7 @@ export default function StudentsPage() {
             <div>
               <p className="text-sm font-medium text-orange-800">Active Allocations</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
-                {students.filter(s => s.currentAllocation).length}
+                {activeAllocations}
               </p>
             </div>
             <div className="p-2 bg-orange-100 rounded-lg">
@@ -317,7 +344,11 @@ export default function StudentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {students.map((student) => (
+              {students.map((student) => {
+              
+              const allocation = allocationsMap[student.id];
+              const isAllocated = allocation?.active === true;
+                return (
                 <tr key={student.id} className="hover:bg-gray-50 transition-colors duration-200">
                   <td className="py-4 px-6">
                     <div>
@@ -347,14 +378,17 @@ export default function StudentsPage() {
                     </div>
                   </td>
                   <td className="py-4 px-6">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      student.currentAllocation 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {student.user.active ? "Allocated" : "Not Allocated"}
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                        isAllocated
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {isAllocated ? "Allocated" : "Not Allocated"}
                     </span>
                   </td>
+
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-2">
                       <button
@@ -382,7 +416,7 @@ export default function StudentsPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         </div>

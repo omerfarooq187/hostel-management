@@ -57,7 +57,6 @@ public class FeeReceiptPdfService {
             document.add(new Paragraph("Amount: Rs " + fee.getAmount(), textFont));
             document.add(new Paragraph("Due: " + fee.getDueDate(), textFont));
             document.add(new Paragraph("Status: " + fee.getStatus(), textFont));
-            document.add(new Paragraph("Mode: CASH", textFont));
 
             document.add(new Paragraph("--------------------------------", textFont));
 

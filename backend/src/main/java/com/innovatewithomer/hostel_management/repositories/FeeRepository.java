@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FeeRepository extends JpaRepository<Fee, Long> {
 
@@ -16,6 +17,11 @@ public interface FeeRepository extends JpaRepository<Fee, Long> {
     List<Fee> findByStatus(FeeStatus status);
 
     List<Fee> findByHostel_Id(Long hostelId);
+
+    Optional<Fee> findByIdAndStudentId(Long feeId, Long studentId);
+
+    List<Fee> findAllByStudentId(Long studentId);
+
 
     @Query("""
         SELECT f FROM Fee f

@@ -7,6 +7,7 @@ import com.innovatewithomer.hostel_management.entities.Student;
 import com.innovatewithomer.hostel_management.repositories.AllocationRepository;
 import com.innovatewithomer.hostel_management.repositories.RoomRepository;
 import com.innovatewithomer.hostel_management.repositories.StudentRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -88,10 +89,16 @@ public class AllocationController {
     }
 
     @GetMapping("/student/{studentId}")
-    public Allocation getStudentAllocation(@PathVariable Long studentId, @RequestParam  Long hostelId) {
-        return allocationRepository.findByStudentIdAndStudent_hostel_IdAndActiveTrue(studentId, hostelId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+    public ResponseEntity<Allocation> getStudentAllocation(
+            @PathVariable Long studentId,
+            @RequestParam Long hostelId
+    ) {
+        return allocationRepository
+                .findByStudentIdAndStudent_hostel_IdAndActiveTrue(studentId, hostelId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.ok(null));
     }
+
 
     @GetMapping("/student/{studentId}/history")
     public List<Allocation> getStudentAllocationHistory(@PathVariable Long studentId, @RequestParam Long hostelId) {
@@ -161,5 +168,11 @@ public class AllocationController {
                 });
 
         return autoAllocate(studentId, roomId,  hostelId);
+    }
+
+
+    @GetMapping("/count")
+    public long count(@RequestParam Long hostelId) {
+        return allocationRepository.countByRoom_Hostel_IdAndActiveTrue(hostelId);
     }
 }

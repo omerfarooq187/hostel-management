@@ -6,9 +6,7 @@ import PublicLayout from "./layout/PublicLayout";
 import Home from "./pages/public/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import StudentDashboard from "./pages/public/StudentDashboard";
 import Profile from "./pages/public/Profile";
-import About from "./pages/public/About";
 
 // Admin pages
 import AdminRouteWrapper from "./components/AdminRouteWrapper";
@@ -23,11 +21,8 @@ export default function App() {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/dashboard" element={<StudentDashboard />} />
       </Route>
 
       {/* Hostel selection route */}

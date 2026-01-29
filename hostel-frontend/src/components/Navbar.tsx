@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -10,6 +10,9 @@ import {
   XMarkIcon,
   Bars3Icon,
   ChevronDownIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  MapPinIcon,
 } from "@heroicons/react/24/outline";
 
 export default function Navbar() {
@@ -18,19 +21,21 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef();
-  const location = useLocation();
 
-  // Navigation items
+  // One-page navigation items (scroll to sections)
   const navItems = [
-    { name: "Home", path: "/", icon: HomeIcon },
-    { name: "About", path: "/about", icon: InformationCircleIcon },
-    { name: "Rooms", path: "/rooms", icon: BuildingOfficeIcon },
+    { name: "Home", href: "#home" },
+    { name: "About", href: "#about" },
+    { name: "Features", href: "#features" },
+    { name: "Rooms", href: "#rooms" },
+    { name: "Testimonials", href: "#testimonials" },
+    { name: "Contact", href: "#contact" },
   ];
 
   // Handle scroll for navbar effect
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 50);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -47,68 +52,96 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Smooth scroll to section
+  const scrollToSection = (href) => {
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      setMenuOpen(false); // Close mobile menu
+    }
+  };
+
   return (
     <nav
-      className={`sticky top-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 font-sans ${
         scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-xl"
-          : "bg-gradient-to-r from-blue-50 to-indigo-50"
+          ? "bg-white/95 backdrop-blur-md shadow-lg py-4"
+          : "bg-transparent py-6"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20 items-center">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center">
           
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
-            <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl group-hover:scale-110 transition-transform duration-300">
-              <BuildingOfficeIcon className="h-6 w-6 text-white" />
+          {/* Logo - Left Side */}
+          <Link
+            to="/"
+            className="flex items-center space-x-3 group transition-all duration-300"
+            onClick={(e) => {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          >
+            <div
+              className={`p-2 rounded-xl transition-all duration-300 ${
+                scrolled
+                  ? "bg-primary text-light-color"
+                  : "bg-light-color/20 text-light-color"
+              }`}
+            >
+              <BuildingOfficeIcon className="h-7 w-7" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <div className="hidden sm:block">
+              <h1
+                className={`text-xl font-medium transition-all duration-300 ${
+                  scrolled ? "text-heading-color" : "text-light-color"
+                }`}
+              >
                 Officers Hostel
               </h1>
-              <p className="text-xs text-gray-500 hidden sm:block">
+              <p
+                className={`text-xs transition-all duration-300 ${
+                  scrolled ? "text-meta-color" : "text-light-color/80"
+                }`}
+              >
                 Premium Accommodation
               </p>
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 ${
-                    isActive
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : "text-gray-700 hover:bg-white hover:shadow-md"
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="font-medium">{item.name}</span>
-                </Link>
-              );
-            })}
+          {/* Desktop Navigation - Center */}
+          <div className="hidden lg:flex items-center space-x-1">
+            {navItems.map((item) => (
+              <button
+                key={item.name}
+                onClick={() => scrollToSection(item.href)}
+                className={`px-5 py-2.5 rounded-btn transition-all duration-300 font-medium ${
+                  scrolled
+                    ? "text-foreground hover:text-primary hover:bg-primary-shade"
+                    : "text-light-color hover:text-light-color hover:bg-light-color/20"
+                }`}
+              >
+                {item.name}
+              </button>
+            ))}
           </div>
 
-          {/* User Actions */}
+          {/* User Actions - Right Side */}
           <div className="flex items-center space-x-4">
             {token ? (
               <div ref={dropdownRef} className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center space-x-3 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:shadow-lg group"
+                  className={`flex items-center space-x-3 px-4 py-2.5 rounded-btn transition-all duration-300 font-medium ${
+                    scrolled
+                      ? "bg-primary hover:bg-dark-shade text-light-color"
+                      : "bg-light-color/20 hover:bg-light-color/30 text-light-color backdrop-blur-sm"
+                  }`}
                 >
                   <UserCircleIcon className="h-5 w-5" />
-                  <div className="text-left">
-                    <div className="font-medium text-sm">
-                      {user?.name || "My Account"}
+                  <div className="text-left hidden sm:block">
+                    <div className="text-sm">
+                      {user?.name?.split(' ')[0] || "Account"}
                     </div>
-                    <div className="text-xs opacity-80">View Profile</div>
                   </div>
                   <ChevronDownIcon
                     className={`h-4 w-4 transition-transform duration-300 ${
@@ -118,35 +151,40 @@ export default function Navbar() {
                 </button>
 
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 animate-fadeIn">
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="font-medium text-gray-900">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-border-color py-2 animate-fadeIn z-50">
+                    <div className="px-4 py-3 border-b border-border-color">
+                      <p className="font-medium text-heading-color">
                         {user?.name || "User"}
                       </p>
-                      <p className="text-sm text-gray-500 truncate">
-                        {user?.email || "student@hostel.com"}
+                      <p className="text-sm text-meta-color truncate">
+                        {user?.email || "user@hostel.com"}
                       </p>
                     </div>
                     
                     <Link
                       to="/dashboard"
-                      className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="flex items-center space-x-3 px-4 py-3 text-foreground hover:bg-primary-shade transition-colors"
+                      onClick={() => setDropdownOpen(false)}
                     >
-                      <BuildingOfficeIcon className="h-5 w-5 text-blue-600" />
+                      <BuildingOfficeIcon className="h-5 w-5 text-secondary" />
                       <span>Dashboard</span>
                     </Link>
                     
                     <Link
                       to="/profile"
-                      className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="flex items-center space-x-3 px-4 py-3 text-foreground hover:bg-primary-shade transition-colors"
+                      onClick={() => setDropdownOpen(false)}
                     >
-                      <UserCircleIcon className="h-5 w-5 text-green-600" />
+                      <UserCircleIcon className="h-5 w-5 text-primary" />
                       <span>Profile Settings</span>
                     </Link>
                     
                     <button
-                      onClick={logout}
-                      className="flex items-center space-x-3 w-full px-4 py-3 text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100"
+                      onClick={() => {
+                        logout();
+                        setDropdownOpen(false);
+                      }}
+                      className="flex items-center space-x-3 w-full px-4 py-3 text-red-600 hover:bg-red-50 transition-colors border-t border-border-color mt-1"
                     >
                       <ArrowRightOnRectangleIcon className="h-5 w-5" />
                       <span>Logout</span>
@@ -155,24 +193,43 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              <Link
-                to="/login"
-                className="group relative overflow-hidden px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:shadow-lg"
-              >
-                <span className="relative z-10 font-medium">Login</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-purple-700 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
-              </Link>
+              <div className="flex items-center space-x-3">
+                <Link
+                  to="/login"
+                  className={`px-6 py-2.5 rounded-btn font-medium transition-all duration-300 hidden sm:inline-block ${
+                    scrolled
+                      ? "bg-heading-color hover:bg-primary text-light-color"
+                      : "bg-light-color/20 hover:bg-light-color/30 text-light-color backdrop-blur-sm"
+                  }`}
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className={`px-6 py-2.5 rounded-btn font-medium transition-all duration-300 hidden sm:inline-block ${
+                    scrolled
+                      ? "border-2 border-heading-color text-heading-color hover:bg-heading-color hover:text-light-color"
+                      : "border-2 border-light-color text-light-color hover:bg-light-color hover:text-heading-color"
+                  }`}
+                >
+                  Register
+                </Link>
+              </div>
             )}
 
             {/* Mobile menu button */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+              className={`lg:hidden p-2.5 rounded-btn transition-all duration-300 ${
+                scrolled
+                  ? "bg-primary-shade hover:bg-primary hover:text-light-color text-primary"
+                  : "bg-light-color/20 hover:bg-light-color/30 text-light-color backdrop-blur-sm"
+              }`}
             >
               {menuOpen ? (
-                <XMarkIcon className="h-6 w-6 text-gray-700" />
+                <XMarkIcon className="h-6 w-6" />
               ) : (
-                <Bars3Icon className="h-6 w-6 text-gray-700" />
+                <Bars3Icon className="h-6 w-6" />
               )}
             </button>
           </div>
@@ -181,48 +238,54 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       <div
-        className={`md:hidden bg-white border-t border-gray-100 shadow-lg transition-all duration-300 overflow-hidden ${
-          menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        className={`lg:hidden bg-white border-t border-border-color shadow-xl transition-all duration-300 overflow-hidden ${
+          menuOpen ? "max-h-[90vh] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="px-4 py-3 space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.name}
-                to={item.path}
-                onClick={() => setMenuOpen(false)}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors ${
-                  isActive
-                    ? "bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="font-medium">{item.name}</span>
-              </Link>
-            );
-          })}
+        <div className="px-4 py-6 space-y-1">
+          {navItems.map((item) => (
+            <button
+              key={item.name}
+              onClick={() => scrollToSection(item.href)}
+              className="flex items-center justify-between w-full px-4 py-3 text-foreground hover:bg-primary-shade rounded-btn transition-colors font-medium"
+            >
+              <span>{item.name}</span>
+              <ChevronDownIcon className="h-4 w-4 rotate-90" />
+            </button>
+          ))}
           
-          {token && (
+          <div className="pt-6 mt-4 border-t border-border-color space-y-4">
+            <div className="flex items-center space-x-3 text-foreground px-4">
+              <PhoneIcon className="h-5 w-5 text-primary" />
+              <span className="text-sm">+1 (555) 123-4567</span>
+            </div>
+            <div className="flex items-center space-x-3 text-foreground px-4">
+              <EnvelopeIcon className="h-5 w-5 text-primary" />
+              <span className="text-sm">info@officershostel.com</span>
+            </div>
+            <div className="flex items-center space-x-3 text-foreground px-4">
+              <MapPinIcon className="h-5 w-5 text-primary" />
+              <span className="text-sm">123 University Road</span>
+            </div>
+          </div>
+          
+          {token ? (
             <>
-              <div className="border-t border-gray-100 my-2"></div>
+              <div className="border-t border-border-color my-4"></div>
               <Link
                 to="/dashboard"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-xl"
+                className="flex items-center space-x-3 px-4 py-3 text-foreground hover:bg-primary-shade rounded-btn font-medium"
               >
-                <BuildingOfficeIcon className="h-5 w-5 text-blue-600" />
+                <BuildingOfficeIcon className="h-5 w-5 text-secondary" />
                 <span>Dashboard</span>
               </Link>
               <Link
                 to="/profile"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-xl"
+                className="flex items-center space-x-3 px-4 py-3 text-foreground hover:bg-primary-shade rounded-btn font-medium"
               >
-                <UserCircleIcon className="h-5 w-5 text-green-600" />
+                <UserCircleIcon className="h-5 w-5 text-primary" />
                 <span>Profile</span>
               </Link>
               <button
@@ -230,24 +293,31 @@ export default function Navbar() {
                   logout();
                   setMenuOpen(false);
                 }}
-                className="flex items-center space-x-3 w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl"
+                className="flex items-center space-x-3 w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-btn font-medium"
               >
                 <ArrowRightOnRectangleIcon className="h-5 w-5" />
                 <span>Logout</span>
               </button>
             </>
-          )}
-          
-          {!token && (
+          ) : (
             <>
-              <div className="border-t border-gray-100 my-2"></div>
-              <Link
-                to="/login"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-colors"
-              >
-                <span className="font-medium">Login to Account</span>
-              </Link>
+              <div className="border-t border-border-color my-4"></div>
+              <div className="grid grid-cols-2 gap-3">
+                <Link
+                  to="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-center px-4 py-3 bg-heading-color text-light-color rounded-btn hover:bg-primary transition-colors font-medium"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-center px-4 py-3 border-2 border-heading-color text-heading-color rounded-btn hover:bg-heading-color hover:text-light-color transition-colors font-medium"
+                >
+                  Register
+                </Link>
+              </div>
             </>
           )}
         </div>
