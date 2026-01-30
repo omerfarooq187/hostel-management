@@ -26,6 +26,9 @@ public class User {
     private String email;
 
     @Column(nullable = false)
+    private boolean emailVerified = false;
+
+    @Column(nullable = false)
     @JsonIgnore
     private String password;
 
