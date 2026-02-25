@@ -1,0 +1,18 @@
+backend/Dockerfile
+backend/docker-compose.yml
+hostel-frontend/node_modules/
+hostel-frontend/build/
+hostel-frontend/dist/
+electron/node_modules/
+electron/build/
+electron/dist
+
+# Ignore Maven build artifacts
+backend/target/
+
+# Ignore Electron/Node dependencies
+node_modules/
+electron/node_modules/
+
+# Ignore specific large files if needed
+*.jar

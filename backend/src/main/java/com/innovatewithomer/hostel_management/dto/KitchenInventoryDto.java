@@ -1,0 +1,22 @@
+package com.innovatewithomer.hostel_management.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class KitchenInventoryDto {
+    private Long id;
+    private String itemCode;
+    private String itemName;
+    private double quantity;
+    private String unit;
+    private double averageCost;
+    private LocalDateTime lastUpdated;
+}
